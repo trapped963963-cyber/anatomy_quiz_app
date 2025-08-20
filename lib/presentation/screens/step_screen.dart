@@ -96,7 +96,7 @@ class _StepScreenState extends ConsumerState<StepScreen> {
               ),
             ),
             Expanded(
-              flex: 1,
+              flex: 2,
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
                 transitionBuilder: (Widget child, Animation<double> animation) {
