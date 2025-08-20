@@ -18,7 +18,7 @@ class _NameInputScreenState extends ConsumerState<NameInputScreen> {
   void _onNext() {
     if (_formKey.currentState!.validate()) {
       ref.read(onboardingProvider.notifier).setName(_nameController.text.trim());
-      context.go('/phone');
+      context.push('/phone');
     }
   }
 

@@ -46,7 +46,7 @@ class LevelScreen extends ConsumerWidget {
                   // The onTap is now enabled if the step is the current one OR is already completed.
                   onTap: (isCurrentStep || isStepCompleted)
                       ? () {
-                          context.go('/step/$levelId/$stepNumber');
+                          context.push('/step/$levelId/$stepNumber');
                         }
                       : null, // The button is disabled for locked steps.
                 ),

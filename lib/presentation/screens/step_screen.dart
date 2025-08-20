@@ -67,44 +67,85 @@ class _StepScreenState extends ConsumerState<StepScreen> {
 
     final currentQuestion = quizState.questions[quizState.currentQuestionIndex];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('الخطوة ${widget.stepNumber} - سؤال ${quizState.currentQuestionIndex + 1}/${quizState.questions.length}'),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(4.h),
-          child: LinearProgressIndicator(
-            value: (quizState.currentQuestionIndex + 1) / quizState.questions.length,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        // If the pop was prevented, show the confirmation dialog
+        if (!didPop) {
+          _showExitConfirmationDialog(context);
+        }
+      }, 
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('الخطوة ${widget.stepNumber} - سؤال ${quizState.currentQuestionIndex + 1}/${quizState.questions.length}'),
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(4.h),
+            child: LinearProgressIndicator(
+              value: (quizState.currentQuestionIndex + 1) / quizState.questions.length,
+            ),
           ),
         ),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            flex: 1,
-            child: diagramAsync.when(
-              data: (diagram) => DiagramWidget(imageAssetPath: diagram.imageAssetPath),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, s) => const Center(child: Text('لا يمكن تحميل الرسم')),
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              transitionBuilder: (Widget child, Animation<double> animation) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-              child: QuestionWidget(
-                key: ValueKey(currentQuestion.correctLabel.id), // Important to force widget rebuild
-                question: currentQuestion,
-                onAnswered: (isCorrect) {
-                  quizNotifier.answerQuestion(isCorrect);
-                },
+        body: Column(
+          children: [
+            Expanded(
+              flex: 1,
+              child: diagramAsync.when(
+                data: (diagram) => DiagramWidget(imageAssetPath: diagram.imageAssetPath),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, s) => const Center(child: Text('لا يمكن تحميل الرسم')),
               ),
             ),
-          ),
-        ],
+            Expanded(
+              flex: 1,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+                child: QuestionWidget(
+                  key: ValueKey(currentQuestion.correctLabel.id), // Important to force widget rebuild
+                  question: currentQuestion,
+                  onAnswered: (isCorrect) {
+                    quizNotifier.answerQuestion(isCorrect);
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+
+  // Add this helper method inside the _StepScreenState class
+  void _showExitConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('هل أنت متأكد؟'),
+          content: const Text('سيتم فقدان تقدمك في هذا الاختبار إذا خرجت الآن.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('البقاء'),
+              onPressed: () {
+                // Just close the dialog
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('الخروج'),
+              onPressed: () {
+                // Close the dialog and then exit the screen
+                // We use context.pop() here from go_router, which is aware of the navigation stack.
+                Navigator.of(dialogContext).pop();
+                context.pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

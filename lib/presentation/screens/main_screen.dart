@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anatomy_quiz_app/presentation/providers/settings_provider.dart';
 import 'package:anatomy_quiz_app/presentation/providers/user_progress_provider.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/settings_icon_button.dart';
-
+import 'package:flutter/services.dart';
 class MainScreen extends ConsumerWidget {
   const MainScreen({super.key});
 
@@ -15,69 +15,78 @@ class MainScreen extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
     final settingsNotifier = ref.read(settingsProvider.notifier);
 
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'مرحباً، ${userProgress.userName ?? ''}!',
-                    style: TextStyle(fontSize: 28.sp, fontWeight: FontWeight.bold),
-                  ),
-                  Row(
-                    children: [
-                      SettingsIconButton(
-                        onIcon: Icons.volume_up,
-                        offIcon: Icons.volume_off,
-                        isOn: settings['sound']!,
-                        onPressed: () => settingsNotifier.toggleSound(),
-                      ),
-                      SettingsIconButton(
-                        onIcon: Icons.vibration,
-                        offIcon: Icons.smartphone,
-                        isOn: settings['haptics']!,
-                        onPressed: () => settingsNotifier.toggleHaptics(),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              SizedBox(height: 60.h),
-              _buildMainButton(
-                context,
-                title: 'متابعة التعلم',
-                subtitle: 'المستوى ${userProgress.currentLevelId}, الخطوة ${userProgress.currentStepInLevel}',
-                icon: Icons.play_arrow,
-                onTap: () {
-                  // We will build this screen next
-                  // context.go('/step/${userProgress.currentLevelId}/${userProgress.currentStepInLevel}');
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('شاشة الاختبار قيد الإنشاء!'))
-                  );
-                },
-              ),
-              SizedBox(height: 20.h),
-              _buildSecondaryButton(
-                context,
-                title: 'مسار التعلم',
-                icon: Icons.map,
-                onTap: () => context.go('/path'),
-              ),
-              SizedBox(height: 10.h),
-              _buildSecondaryButton(
-                context,
-                title: 'اختبار عام',
-                icon: Icons.quiz,
-                onTap: () {
-                  // We will build this screen later
-                },
-              ),
-            ],
+    return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (bool didPop ,dynamic result) {
+        if (!didPop) {
+          SystemNavigator.pop();
+       }
+      },
+
+      child: Scaffold(
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'مرحباً، ${userProgress.userName ?? ''}!',
+                      style: TextStyle(fontSize: 28.sp, fontWeight: FontWeight.bold),
+                    ),
+                    Row(
+                      children: [
+                        SettingsIconButton(
+                          onIcon: Icons.volume_up,
+                          offIcon: Icons.volume_off,
+                          isOn: settings['sound']!,
+                          onPressed: () => settingsNotifier.toggleSound(),
+                        ),
+                        SettingsIconButton(
+                          onIcon: Icons.vibration,
+                          offIcon: Icons.smartphone,
+                          isOn: settings['haptics']!,
+                          onPressed: () => settingsNotifier.toggleHaptics(),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                SizedBox(height: 60.h),
+                _buildMainButton(
+                  context,
+                  title: 'متابعة التعلم',
+                  subtitle: 'المستوى ${userProgress.currentLevelId}, الخطوة ${userProgress.currentStepInLevel}',
+                  icon: Icons.play_arrow,
+                  onTap: () {
+                    // We will build this screen next
+                    // context.go('/step/${userProgress.currentLevelId}/${userProgress.currentStepInLevel}');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('شاشة الاختبار قيد الإنشاء!'))
+                    );
+                  },
+                ),
+                SizedBox(height: 20.h),
+                _buildSecondaryButton(
+                  context,
+                  title: 'مسار التعلم',
+                  icon: Icons.map,
+                  onTap: () => context.push('/path'),
+                ),
+                SizedBox(height: 10.h),
+                _buildSecondaryButton(
+                  context,
+                  title: 'اختبار عام',
+                  icon: Icons.quiz,
+                  onTap: () {
+                    // We will build this screen later
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

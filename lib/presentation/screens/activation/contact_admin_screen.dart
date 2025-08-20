@@ -81,7 +81,7 @@ class ContactAdminScreen extends ConsumerWidget {
                   ),
                   SizedBox(height: 30.h),
                   OutlinedButton(
-                    onPressed: () => context.go('/activate'),
+                    onPressed: () => context.push('/activate'),
                     child: const Text('لقد أرسلت الرسالة، أدخل الكود الآن'),
                   ),
                   TextButton(onPressed: () => context.pop(), child: const Text('رجوع')),

@@ -19,7 +19,7 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
   void _onNext() {
     if (_isComplete) {
       ref.read(onboardingProvider.notifier).setPhoneNumber(_phoneNumber);
-      context.go('/promo');
+      context.push('/promo');
     }
   }
 

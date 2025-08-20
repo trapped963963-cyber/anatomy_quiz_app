@@ -60,7 +60,7 @@ class PathScreen extends ConsumerWidget {
                   enabled: !isLocked,
                   onTap: () {
                     if (!isLocked) {
-                      context.go('/level/${diagram.id}');
+                      context.push('/level/${diagram.id}');
                     }
                   },
                 ),

@@ -21,7 +21,7 @@ class _PromoCodeScreenState extends ConsumerState<PromoCodeScreen> {
 
   Future<void> _validateAndProceed() async {
     if (_promoCode.isEmpty) {
-      context.go('/contact');
+      context.push('/contact');
       return;
     }
 
