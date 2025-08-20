@@ -25,21 +25,42 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
     final prefs = await SharedPreferences.getInstance();
     final activationCode = prefs.getString('activationCode');
-    final phoneNumber = prefs.getString('phoneNumberForValidation'); // We need to save this
-    
-    // We'll assume for now if the code exists, it's valid.
-    // The spec's logic to re-validate on every launch can be added here.
-    if (activationCode != null && activationCode.isNotEmpty) {
-      // User is activated, load their data and go to the main screen
+    final phoneNumber = prefs.getString('phoneNumberForValidation');
+
+    // Get an instance of our activation service from the provider
+    final activationService = ref.read(activationServiceProvider);
+
+    bool isStillValid = false;
+
+    // First, check if we have the necessary credentials to even attempt a validation
+    if (activationCode != null && activationCode.isNotEmpty && phoneNumber != null && phoneNumber.isNotEmpty) {
+      // --- THIS IS THE NEW LOGIC ---
+      // Re-calculate the expected code based on the device fingerprint and
+      // compare it to the one saved in storage.
+      isStillValid = await activationService.verifyActivationCode(
+        phoneNumber: phoneNumber,
+        activationCode: activationCode,
+      );
+    }
+
+    // To ensure a clean state, if validation fails, we should clear the old invalid keys.
+    if (!isStillValid) {
+      await prefs.remove('activationCode');
+      await prefs.remove('phoneNumberForValidation');
+    }
+
+    // This is to prevent errors if the user navigates away while we're checking
+    if (!mounted) return; 
+
+    if (isStillValid) {
+      // User is still activated, load their data and go to the main screen
       await ref.read(userProgressProvider.notifier).loadInitialData();
-      if (mounted) context.go('/home');
+      context.go('/home');
     } else {
-      // User is not activated, go to the welcome screen
-      if (mounted) context.go('/welcome');
+      // User is not activated or validation failed, go to the welcome screen
+      context.go('/welcome');
     }
   }
-
-
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
