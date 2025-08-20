@@ -241,13 +241,50 @@ Widget _buildMcqUi() {
           SizedBox(height: 24.h),
           Wrap(
             spacing: 8.w, runSpacing: 8.h, alignment: WrapAlignment.center,
+            // Replace the children of the letter bank Wrap with this:
             children: _letterBank.map((letter) {
-              return ElevatedButton(
-                onPressed: () {
-                  int emptyIndex = _answerSlots.indexOf('');
-                  if (emptyIndex != -1) { setState(() { _answerSlots[emptyIndex] = letter; _letterBank.remove(letter); }); }
-                },
-                child: Text(letter, style: TextStyle(fontSize: 18.sp)),
+              // letter is a simple String here, as per your current code.
+              return Container(
+                width: 40.w,
+                height: 40.h,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(8.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 3,
+                      offset: const Offset(1, 2),
+                    ),
+                  ],
+                ),
+                // We wrap with Material for the InkWell ripple effect.
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      // This is your current logic, which we are preserving.
+                      int emptyIndex = _answerSlots.indexOf('');
+                      if (emptyIndex != -1) {
+                        setState(() {
+                          _answerSlots[emptyIndex] = letter;
+                          _letterBank.remove(letter);
+                        });
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(12.r),
+                    child: Center(
+                      child: Text(
+                        letter,
+                        style: TextStyle(
+                          fontSize: 20.sp,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               );
             }).toList(),
           ),
