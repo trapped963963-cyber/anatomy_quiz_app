@@ -40,11 +40,18 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
             ),
             SizedBox(height: 30.h),
             PhoneNumberInput(
-              onCompleted: (number) {
+              onValueChanged: (value) {
+                // This runs on every key press.
                 setState(() {
-                  _phoneNumber = number;
-                  _isComplete = true;
+                  _phoneNumber = value;
+                  // The button is only enabled if the length is exactly 10.
+                  _isComplete = value.length == 10;
                 });
+              },
+              onCompleted: (number) {
+                // This now runs only once at the end. We can use it for
+                // specific actions like hiding the keyboard, but the main
+                // logic is now in onValueChanged. For now, we can leave it empty.
               },
             ),
             SizedBox(height: 30.h),
