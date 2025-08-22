@@ -24,7 +24,7 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
 
   // Your hardcoded backup number for the "Report Problem" button.
   // Make sure to change this to your actual backup number.
-  final String _backupContactNumber = "+15551234567";
+  final String _backupContactNumber = "+963997564200";
 
   @override
   void initState() {
@@ -43,10 +43,18 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
 
   try {
     final apiService = ref.read(apiServiceProvider);
-    final number = await apiService.getContactNumber();
+    final activationService = ref.read(activationServiceProvider);
+    final onboardingState = ref.read(onboardingProvider);
+
+    final results = await Future.wait([
+      apiService.getContactNumber(),
+      activationService.generateDeviceFingerprint(onboardingState.phoneNumber),
+    ]);
+
     if (mounted) {
       setState(() {
-        _contactNumber = number;
+        _contactNumber = results[0];
+        _fingerprint = results[1];
         _isLoading = false;
         _apiFailedAttempts = 0;
       });
@@ -59,8 +67,16 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
 
     if (e is NoInternetException) {
       errorMessage = e.toString();
-    } else {
-      currentFailCount++; // Only increment for API/server errors
+    } 
+    // ## NEW: Catching the specific Device ID error ##
+    else if (e is PlatformException) {
+      currentFailCount++;
+      errorMessage = 'حدث خطأ في قراءة بيانات الجهاز. الرجاء المحاولة مرة أخرى.';
+      // For your report, you might want the technical detail.
+      // You could also store e.toString() in another variable for the report.
+    }
+    else { // Handles ApiException and any other generic error
+      currentFailCount++;
       errorMessage = e is ApiException ? e.toString() : 'An unexpected error occurred.';
     }
 
@@ -70,7 +86,6 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
       _isLoading = false;
     });
 
-    // ## NEW: Auto-report logic ##
     if (_apiFailedAttempts >= 10) {
       _reportProblemToAdmin();
       if (mounted) {

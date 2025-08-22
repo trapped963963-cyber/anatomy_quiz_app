@@ -22,7 +22,7 @@ class ApiException implements Exception {
 class ApiService {
   // Replace this with your actual Vercel deployment URL
   final String _apiUrl =
-      'https://anatomy-api.vercel.app/api/get-conta200ct-info';
+      'https://anatomy-api.vercel.app/api/get-contact-info';
   Future<String> getContactNumber() async {
     try {
       final response = await http.get(Uri.parse(_apiUrl))
