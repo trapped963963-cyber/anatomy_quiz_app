@@ -1,15 +1,23 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:anatomy_quiz_app/core/utils/activation_service.dart';
+
+enum Gender { male, female }
 class OnboardingState {
   final String name;
   final String phoneNumber;
+  final Gender? gender; 
 
-  OnboardingState({this.name = '', this.phoneNumber = ''});
+  OnboardingState({
+    this.name = '', 
+    this.phoneNumber = '',
+    this.gender,
+    });
 
-  OnboardingState copyWith({String? name, String? phoneNumber}) {
+  OnboardingState copyWith({String? name, String? phoneNumber, Gender? gender}) {
     return OnboardingState(
       name: name ?? this.name,
       phoneNumber: phoneNumber ?? this.phoneNumber,
+      gender: gender ?? this.gender,
     );
   }
 }
@@ -23,6 +31,10 @@ class OnboardingNotifier extends StateNotifier<OnboardingState> {
 
   void setPhoneNumber(String phoneNumber) {
     state = state.copyWith(phoneNumber: phoneNumber);
+  }
+
+  void setGender(Gender gender) {
+    state = state.copyWith(gender: gender);
   }
 }
 

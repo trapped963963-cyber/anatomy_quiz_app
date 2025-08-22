@@ -7,7 +7,6 @@ import 'package:anatomy_quiz_app/presentation/providers/onboarding_provider.dart
 import 'package:anatomy_quiz_app/presentation/providers/user_progress_provider.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/activation/activation_code_input.dart';
 
-
 class ActivationCodeScreen extends ConsumerStatefulWidget {
   const ActivationCodeScreen({super.key});
 
@@ -46,6 +45,11 @@ class _ActivationCodeScreenState extends ConsumerState<ActivationCodeScreen> {
       // Save user name
       await userNotifier.setUserName(onboardingState.name);
       
+      if (onboardingState.gender != null) 
+      {
+        await userNotifier.setGender(onboardingState.gender!);
+      }
+
       // Save user phone      
       await prefs.setString('phoneNumberForValidation', onboardingState.phoneNumber);
       // Navigate to home, replacing the entire activation stack

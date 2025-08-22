@@ -33,8 +33,9 @@ class ContactAdminScreen extends ConsumerWidget {
               return const Center(child: CircularProgressIndicator());
             }
             final fingerprint = snapshot.data!;
-            final message = 'أرغب في تفعيل التطبيق.\nالاسم: ${onboardingState.name}\nرقم الهاتف: ${onboardingState.phoneNumber}\nرمز الجهاز: $fingerprint';
-            
+            // Convert gender enum to Arabic string
+            final genderString = onboardingState.gender == Gender.male ? 'ذكر' : 'أنثى';
+            final message = 'أرغب في تفعيل التطبيق.\nالاسم: ${onboardingState.name}\nالجنس: $genderString\nرقم الهاتف: ${onboardingState.phoneNumber}\nرمز الجهاز: $fingerprint';            
             return SingleChildScrollView(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,

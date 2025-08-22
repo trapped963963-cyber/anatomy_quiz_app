@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anatomy_quiz_app/data/models/models.dart';
 import 'package:anatomy_quiz_app/presentation/providers/database_provider.dart';
+import 'package:anatomy_quiz_app/presentation/providers/onboarding_provider.dart';
+
 
 // This Notifier will be the single source of truth for user progress
 class UserProgressNotifier extends StateNotifier<UserProgress> {
@@ -34,6 +36,13 @@ class UserProgressNotifier extends StateNotifier<UserProgress> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('userName', name);
     state = state.copyWith(userName: name);
+  }
+
+  Future<void> setGender(Gender gender) async {
+    final prefs = await SharedPreferences.getInstance();
+    final genderString = gender == Gender.male ? 'ذكر' : 'أنثى';
+    await prefs.setString('userGender', genderString);
+    state = state.copyWith(gender: genderString);
   }
 
 
