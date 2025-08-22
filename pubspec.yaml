@@ -43,6 +43,7 @@ dependencies:
   path_provider: ^2.1.3
   url_launcher: ^6.3.0 
   audioplayers: ^6.0.0
+  http: ^1.2.1
 
   # UI & Utility Packages
   google_fonts: ^6.2.1

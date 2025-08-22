@@ -7,7 +7,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anatomy_quiz_app/presentation/providers/database_provider.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/activation/promo_code_input.dart';
 import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
-import 'package:flutter/services.dart'; // <-- RE-ADDED for Clipboard
+import 'package:flutter/services.dart';
+import 'package:anatomy_quiz_app/presentation/providers/onboarding_provider.dart';
 
 class PromoCodeScreen extends ConsumerStatefulWidget {
   const PromoCodeScreen({super.key});
@@ -29,11 +30,14 @@ class _PromoCodeScreenState extends ConsumerState<PromoCodeScreen> {
     final hash = sha256.convert(bytes).toString();
     final isValid = await db.validatePromoCode(hash);
 
+    if (isValid) {ref.read(onboardingProvider.notifier).setPromoCode(code.toUpperCase());}
     setState(() {
       _isCodeValid = isValid;
       if (isValid) {
         _successText = 'رمز ترويجي صالح!';
         _errorText = null;
+
+
       } else {
         _errorText = 'الرمز الترويجي غير صالح';
         _successText = null;
