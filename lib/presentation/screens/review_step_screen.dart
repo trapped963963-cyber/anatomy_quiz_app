@@ -105,7 +105,7 @@ class ReviewStepScreen extends ConsumerWidget {
             ),
           ),
           Expanded(
-            flex: 1,
+            flex: 2,
             child: QuestionWidget(
               key: ValueKey(currentQuestion),
               question: currentQuestion,

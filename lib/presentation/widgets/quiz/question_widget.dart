@@ -8,6 +8,8 @@ import 'package:anatomy_quiz_app/core/utils/sound_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:anatomy_quiz_app/presentation/providers/settings_provider.dart';
 import 'dart:math';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 class QuestionWidget extends ConsumerStatefulWidget {
   final Question question;
@@ -85,18 +87,31 @@ class _QuestionWidgetState extends ConsumerState<QuestionWidget> {
     }
   }
 
-  void _handleAnswer(Label selectedAnswer) {
+  // This new method is called when the user taps an option.
+  void _handleSelection(Label selectedChoice) {
+    // Do nothing if the answer has already been checked and locked in.
     if (_isAnswered) return;
 
     setState(() {
-      _isAnswered = true;
-      _selectedAnswerId = selectedAnswer.id;
+      _selectedAnswerId = selectedChoice.id;
     });
+  }
 
-    final isCorrect = selectedAnswer.id == widget.question.correctLabel.id;
+  // This new method is called when the user presses the "Check" button.
+  void _handleCheck() {
+    // Do nothing if no answer is selected or if it's already been checked.
+    if (_selectedAnswerId == null || _isAnswered) return;
+
+    final selectedChoice = widget.question.choices.firstWhere((c) => c.id == _selectedAnswerId);
+    final isCorrect = selectedChoice.id == widget.question.correctLabel.id;
     final settings = ref.read(settingsProvider);
 
-    // Play sound and haptics
+    // Lock the question and show the red/green feedback colors.
+    setState(() {
+      _isAnswered = true;
+    });
+
+    // Play sound and haptics.
     if (isCorrect) {
       ref.read(soundServiceProvider).playCorrectSound();
     } else {
@@ -106,11 +121,115 @@ class _QuestionWidgetState extends ConsumerState<QuestionWidget> {
       }
     }
 
-    Timer(const Duration(milliseconds: 1200), () {
-      widget.onAnswered(isCorrect);
+    // Wait a moment before telling the parent screen to move to the next question.
+    Timer(const Duration(milliseconds: 1500), () {
+      if (mounted) {
+        widget.onAnswered(isCorrect);
+      }
     });
   }
 
+  void _showFullQuestionText(BuildContext context, String fullText) {
+    // Get the screen height to make our bottom sheet responsive
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return ConstrainedBox(
+          // ## FIX: Height is now relative to the screen ##
+          constraints: BoxConstraints(maxHeight: screenHeight * 0.5), // 50% of screen height
+          child: Padding(
+            // ## FIX: Horizontal padding makes it not touch the edges ##
+            padding: EdgeInsets.symmetric(horizontal: 20.w,vertical: 16.h),
+            child: Stack( // Use a Stack to overlay the close button
+              children: [
+                // Main content
+                SizedBox(
+                  width: double.infinity,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 40.w,
+                        height: 4.h,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(2.r),
+                        ),
+                      ),
+                      SizedBox(height: 22.h),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Text(
+                            fullText,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 20.sp, height: 2.0,fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // ## FIX: Add the 'X' close button ##
+                Positioned(
+                  top: -4.h, // Adjust position to look nice
+                  right: -12.w,
+                  child: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildQuestionContainer(String passedText) {
+
+    return Stack( // We use Stack to overlay the button on the container
+      children: [
+        // The main text container
+        Container(
+          width: double.infinity,
+          constraints: BoxConstraints(minHeight: 60.h, maxHeight: 80.h),
+          padding: EdgeInsets.all(7.w),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(8.r),
+          ),
+          child: Center(
+            child: AutoSizeText(
+              passedText,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 19.sp, fontWeight: FontWeight.bold),
+              minFontSize: 14,
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+        // ## FIX: Use Positioned for the icon ##
+        // This "floats" the button in the corner without taking up layout space.
+        Positioned(
+          top: 0,
+          left: 0,
+          child: IconButton(
+            // ## FIX: Changed icon to zoom_out_map ##
+            icon: const Icon(Icons.zoom_out_map, color: AppColors.textSecondary),
+            onPressed: () => _showFullQuestionText(context, passedText),
+            tooltip: 'عرض النص الكامل',
+          ),
+        ),
+      ],
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -140,70 +259,99 @@ class _QuestionWidgetState extends ConsumerState<QuestionWidget> {
     }
   }
 
-  // --- UI Builder for Multiple Choice Questions ---
-Widget _buildMcqUi() {
+  Widget _buildMcqUi() {
+    // 1. Define button styles with explicit padding to make them more compact.
+    final ButtonStyle baseStyle = ElevatedButton.styleFrom(
+      padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 24.w), // Control padding here
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap, // Reduce extra tap space
+      elevation: 4,
+      shadowColor: Colors.black.withOpacity(0.3),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+    );
+
+    final ButtonStyle normalStyle = baseStyle.copyWith(
+      backgroundColor: MaterialStateProperty.all(AppColors.primary),
+      foregroundColor: MaterialStateProperty.all(Colors.white),
+    );
+
+    final ButtonStyle selectedStyle = baseStyle.copyWith(
+      backgroundColor: MaterialStateProperty.all(AppColors.primaryDark),
+      foregroundColor: MaterialStateProperty.all(Colors.white),
+      elevation: MaterialStateProperty.all(6),
+      side: MaterialStateProperty.all(BorderSide(color: AppColors.accent, width: 3.w)),
+    );
+
+    final ButtonStyle correctStyle = baseStyle.copyWith(
+      backgroundColor: MaterialStateProperty.all(AppColors.correct),
+      foregroundColor: MaterialStateProperty.all(Colors.white),
+      elevation: MaterialStateProperty.all(6),
+    );
+
+    final ButtonStyle incorrectStyle = baseStyle.copyWith(
+      backgroundColor: MaterialStateProperty.all(AppColors.incorrect),
+      foregroundColor: MaterialStateProperty.all(Colors.white),
+      elevation: MaterialStateProperty.all(6),
+    );
+
+    final ButtonStyle disabledStyle = baseStyle.copyWith(
+      backgroundColor: MaterialStateProperty.all(AppColors.primary.withOpacity(0.5)),
+      foregroundColor: MaterialStateProperty.all(Colors.white.withOpacity(0.7)),
+      elevation: MaterialStateProperty.all(0),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // The question text remains fixed at the top
-        Container(
-          constraints: BoxConstraints(
-            maxHeight: 120.h, // Set a max height for the text area
-          ),
-          padding: const EdgeInsets.all(8.0),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(8.r),
-          ),
-          // This makes the text itself scrollable if it overflows the container
-          child: Scrollbar(
-            child: SingleChildScrollView(
-              child: Text(
-                widget.question.questionText,
-                style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-        ),
-        SizedBox(height: 16.h), // Reduced spacing slightly
-
-        // This Expanded section will take all remaining space and make its child scrollable
+       _buildQuestionContainer(widget.question.questionText),
+        SizedBox(height: 16.h),
         Expanded(
-          child: ListView.builder(
+          child: ListView.separated(
             itemCount: widget.question.choices.length,
+            separatorBuilder: (context, index) => SizedBox(height: 10.h),
             itemBuilder: (context, index) {
               final choice = widget.question.choices[index];
-              Color tileColor = Colors.transparent;
+              final isSelected = choice.id == _selectedAnswerId;
+              final isCorrect = choice.id == widget.question.correctLabel.id;
+
+              ButtonStyle currentStyle = normalStyle;
               if (_isAnswered) {
-                if (choice.id == widget.question.correctLabel.id) {
-                  tileColor = AppColors.correct.withOpacity(0.3);
-                } else if (choice.id == _selectedAnswerId) {
-                  tileColor = AppColors.incorrect.withOpacity(0.3);
-                }
+                if (isCorrect) currentStyle = correctStyle;
+                else if (isSelected) currentStyle = incorrectStyle;
+                else currentStyle = disabledStyle;
+              } else if (isSelected) {
+                currentStyle = selectedStyle;
               }
 
-              return Card(
-                color: tileColor,
-                elevation: 2,
-                child: ListTile(
-                  title: Text(
-                    widget.question.questionType == QuestionType.askForTitle
-                        ? choice.title
-                        : choice.labelNumber.toString(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w500),
-                  ),
-                  onTap: () => _handleAnswer(choice),
+              // 2. Create the button widget WITHOUT the extra Padding widget.
+              Widget button = ElevatedButton(
+                style: currentStyle,
+                onPressed: () => _handleSelection(choice),
+                child: Text( // The child is now just the Text widget.
+                  widget.question.questionType == QuestionType.askForTitle
+                      ? choice.title
+                      : choice.labelNumber.toString(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
                 ),
               );
+
+              if (_isAnswered && isSelected) {
+                if (isCorrect) return button.animate().shimmer(duration: 700.ms, delay: 200.ms);
+                else return button.animate().shake(hz: 5, duration: 500.ms);
+              }
+
+              return button;
             },
           ),
+        ),
+        SizedBox(height: 16.h),
+        ElevatedButton(
+          onPressed: (_selectedAnswerId != null && !_isAnswered) ? _handleCheck : null,
+          child: const Text('تحقق'),
         ),
       ],
     );
   }
-
  Widget _buildWordGameUi() {
   // If the game has already been set up for this question, build the UI.
   if (_isGameSetup) {
@@ -212,7 +360,7 @@ Widget _buildMcqUi() {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(_displayQuestionText, style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+          _buildQuestionContainer(_displayQuestionText),
           SizedBox(height: 20.h),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
