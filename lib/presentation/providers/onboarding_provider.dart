@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:anatomy_quiz_app/core/utils/activation_service.dart';
 import 'package:anatomy_quiz_app/core/utils/api_service.dart';
+import 'package:anatomy_quiz_app/data/models/user_progress.dart';
 
-enum Gender { male, female }
 class OnboardingState {
   final String name;
   final String phoneNumber;

@@ -1,4 +1,6 @@
 import 'package:anatomy_quiz_app/data/models/level_stat.dart';
+enum Gender { male, female }
+
 
 class UserProgress {
   final String? userName;

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:anatomy_quiz_app/presentation/providers/onboarding_provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
+import 'package:anatomy_quiz_app/data/models/user_progress.dart';
 class NameInputScreen extends ConsumerStatefulWidget {
   const NameInputScreen({super.key});
 

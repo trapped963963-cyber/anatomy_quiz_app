@@ -5,7 +5,6 @@ import 'package:anatomy_quiz_app/data/models/models.dart';
 import 'package:anatomy_quiz_app/presentation/providers/quiz_provider.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/quiz/diagram_widget.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/quiz/question_widget.dart';
-import 'package:anatomy_quiz_app/presentation/providers/user_progress_provider.dart';
 
 
 

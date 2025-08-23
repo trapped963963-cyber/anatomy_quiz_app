@@ -97,18 +97,12 @@ class _StepScreenState extends ConsumerState<StepScreen> {
             ),
             Expanded(
               flex: 2,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return FadeTransition(opacity: animation, child: child);
+              child: QuestionWidget(
+                key: ValueKey(currentQuestion.correctLabel.id), // Important to force widget rebuild
+                question: currentQuestion,
+                onAnswered: (isCorrect) {
+                  quizNotifier.answerQuestion(isCorrect);
                 },
-                child: QuestionWidget(
-                  key: ValueKey(currentQuestion.correctLabel.id), // Important to force widget rebuild
-                  question: currentQuestion,
-                  onAnswered: (isCorrect) {
-                    quizNotifier.answerQuestion(isCorrect);
-                  },
-                ),
               ),
             ),
           ],
