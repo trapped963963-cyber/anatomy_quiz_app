@@ -16,6 +16,17 @@ class _NameInputScreenState extends ConsumerState<NameInputScreen> {
   final _nameController = TextEditingController();
   Gender? _selectedGender; // State for the selected gender
 
+ 
+  @override
+  void initState() {
+    super.initState();
+    // This listener will call setState() every time the user types in the name field,
+    // forcing the button to update its state.
+    _nameController.addListener(() {
+      setState(() {});
+    });
+  }
+ 
   void _onNext() {
     // Validate both name and gender before proceeding
     if (_formKey.currentState!.validate() && _selectedGender != null) {
@@ -27,6 +38,7 @@ class _NameInputScreenState extends ConsumerState<NameInputScreen> {
 
   @override
   void dispose() {
+    _nameController.removeListener(() {});
     _nameController.dispose();
     super.dispose();
   }
