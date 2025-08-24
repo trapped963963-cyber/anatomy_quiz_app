@@ -123,4 +123,28 @@ class DatabaseHelper {
     // This is an efficient way to get a single integer value from a query.
     return Sqflite.firstIntValue(result) ?? 0;
   }
+
+  Future<List<Unit>> getUnits() async {
+    final db = await database;
+    // Order by ID to ensure a consistent order
+    final List<Map<String, dynamic>> maps = await db.query('units', orderBy: 'id');
+    return List.generate(maps.length, (i) {
+      return Unit.fromMap(maps[i]);
+    });
+  }
+
+  Future<List<AnatomicalDiagram>> getDiagramsForUnit(int unitId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'diagrams',
+      where: 'unit_id = ?',
+      whereArgs: [unitId],
+      orderBy: 'id',
+    );
+    return List.generate(maps.length, (i) {
+      return AnatomicalDiagram.fromMap(maps[i]);
+    });
+  }
+
+
 }
