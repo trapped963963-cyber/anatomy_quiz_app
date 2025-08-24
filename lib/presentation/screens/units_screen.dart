@@ -19,6 +19,11 @@ class UnitsScreen extends ConsumerWidget {
             itemCount: units.length,
             itemBuilder: (context, index) {
               final unit = units[index];
+
+              // Now, instead of getting a list directly, we get an AsyncValue
+              // which can be in a loading, error, or data state.
+              final diagramsAsync = ref.watch(diagramsWithProgressProvider(unit.id));
+
               return Padding(
                 padding: EdgeInsets.symmetric(vertical: 16.h),
                 child: Column(
@@ -32,7 +37,35 @@ class UnitsScreen extends ConsumerWidget {
                       ),
                     ),
                     SizedBox(height: 12.h),
-                    DiagramsCarousel(unitId: unit.id),
+
+                    // We use .when() to build the correct UI for each state.
+                    diagramsAsync.when(
+                      // While loading, show a placeholder.
+                      loading: () => SizedBox(
+                        height: 250.h,
+                        child: const Center(child: CircularProgressIndicator()),
+                      ),
+                      // If there's an error, show an error message.
+                      error: (e, st) => SizedBox(
+                        height: 250.h,
+                        child: Center(child: Text('لا يمكن تحميل الرسوم')),
+                      ),
+                      // Only when data is ready, we build the carousel.
+                      data: (diagramsWithProgress) {
+                        // The calculation and widget building now happens here.
+                        int initialIndex = diagramsWithProgress.indexWhere(
+                          (d) => d.progress == null || d.progress!.isCompleted == false
+                        );
+                        if (initialIndex == -1) {
+                          initialIndex = 0;
+                        }
+
+                        return DiagramsCarousel(
+                          diagrams: diagramsWithProgress,
+                          initialIndex: initialIndex,
+                        );
+                      },
+                    ),
                   ],
                 ),
               );

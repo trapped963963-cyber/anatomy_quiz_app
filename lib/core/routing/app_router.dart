@@ -41,10 +41,6 @@ class AppRouter {
         builder: (context, state) => const MainScreen(),
       ),
       GoRoute(
-        path: '/path',
-        builder: (context, state) => const PathScreen(),
-      ),
-      GoRoute(
           path: '/level/:levelId',
           builder: (context, state) {
           final levelId = int.parse(state.pathParameters['levelId']!);

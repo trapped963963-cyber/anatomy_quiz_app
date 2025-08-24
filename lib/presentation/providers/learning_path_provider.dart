@@ -16,27 +16,16 @@ final diagramsForUnitProvider = FutureProvider.family<List<AnatomicalDiagram>, i
   return dbHelper.getDiagramsForUnit(unitId);
 });
 
-// Provider 3: The main provider our UI will use.
-// It takes the diagrams from Provider 2, gets the user's progress,
-// and combines them into the `DiagramWithProgress` model we created.
-final diagramsWithProgressProvider = Provider.family<List<DiagramWithProgress>, int>((ref, unitId) {
-  // Watch for the list of diagrams for the given unit.
-  final diagramsAsyncValue = ref.watch(diagramsForUnitProvider(unitId));
-  // Watch for the user's overall progress.
+final diagramsWithProgressProvider = FutureProvider.family<List<DiagramWithProgress>, int>((ref, unitId) async {
+  // 1. We now 'await' the result of the database call.
+  final diagrams = await ref.watch(diagramsForUnitProvider(unitId).future);
+
+  // 2. We can then read the synchronous progress data.
   final userProgress = ref.watch(userProgressProvider);
 
-  return diagramsAsyncValue.when(
-    data: (diagrams) {
-      // When we have the diagrams, map over them.
-      return diagrams.map((diagram) {
-        // For each diagram, look up its progress in the user's progress map.
-        final progress = userProgress.levelStats[diagram.id];
-        // Return our combined model.
-        return DiagramWithProgress(diagram: diagram, progress: progress);
-      }).toList();
-    },
-    // While loading or if there's an error, return an empty list.
-    loading: () => [],
-    error: (e, st) => [],
-  );
+  // 3. We map and combine them, same as before.
+  return diagrams.map((diagram) {
+    final progress = userProgress.levelStats[diagram.id];
+    return DiagramWithProgress(diagram: diagram, progress: progress);
+  }).toList();
 });

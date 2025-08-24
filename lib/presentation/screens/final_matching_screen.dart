@@ -75,7 +75,7 @@ class FinalMatchingScreen extends ConsumerWidget {
                           backgroundColor: Colors.green,
                         ),
                       );
-                      context.go('/level/$levelId');
+                      context.pop();//('/level/$levelId');
                     }
                   }
                 },

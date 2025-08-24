@@ -59,7 +59,7 @@ class MainScreen extends ConsumerWidget {
                 _buildMainButton(
                   context,
                   title: 'متابعة التعلم',
-                  subtitle: 'المستوى ${userProgress.currentLevelId}, الخطوة ${userProgress.currentStepInLevel}',
+                  subtitle: 'المستوى',
                   icon: Icons.play_arrow,
                   onTap: () {
                     // We will build this screen next

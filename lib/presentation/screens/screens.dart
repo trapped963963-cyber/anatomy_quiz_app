@@ -7,7 +7,6 @@ export 'activation/activation_code_screen.dart';
 
 // Will add main app screens later
 export 'main_screen.dart';
-export 'path_screen.dart';
 export 'splash_screen.dart';
 export 'level_screen.dart';
 export 'step_screen.dart';
