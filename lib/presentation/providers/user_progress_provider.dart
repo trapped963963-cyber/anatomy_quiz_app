@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anatomy_quiz_app/data/models/models.dart';
 import 'package:anatomy_quiz_app/presentation/providers/database_provider.dart';
-import 'package:anatomy_quiz_app/presentation/providers/onboarding_provider.dart';
 
 
 // This Notifier will be the single source of truth for user progress
