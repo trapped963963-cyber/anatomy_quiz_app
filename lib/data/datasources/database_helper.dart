@@ -141,9 +141,14 @@ class DatabaseHelper {
       whereArgs: [unitId],
       orderBy: 'id',
     );
-    return List.generate(maps.length, (i) {
-      return AnatomicalDiagram.fromMap(maps[i]);
-    });
+
+    // Use Future.wait to efficiently get the label count for each diagram
+    return await Future.wait(maps.map((map) async {
+      final diagram = AnatomicalDiagram.fromMap(map);
+      final count = await getLabelsCountForDiagram(diagram.id);
+      // Return a new diagram object that includes the totalSteps
+      return diagram.copyWith(totalSteps: count);
+    }));
   }
 
 

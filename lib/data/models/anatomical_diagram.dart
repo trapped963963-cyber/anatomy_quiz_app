@@ -7,6 +7,7 @@ class AnatomicalDiagram {
   final String imageAssetPath;
   final int unitId; 
   final List<Label> labels;
+  final int totalSteps; 
 
   AnatomicalDiagram({
     required this.id,
@@ -15,6 +16,7 @@ class AnatomicalDiagram {
     required this.imageAssetPath,
     required this.unitId,
     this.labels = const [],
+    this.totalSteps = 0,
   });
 
   factory AnatomicalDiagram.fromMap(Map<String, dynamic> map) {
@@ -34,6 +36,8 @@ class AnatomicalDiagram {
     String? imageAssetPath,
     int? unitId, 
     List<Label>? labels,
+    int? totalSteps, 
+
   }) {
     return AnatomicalDiagram(
       id: id ?? this.id,
@@ -42,6 +46,7 @@ class AnatomicalDiagram {
       imageAssetPath: imageAssetPath ?? this.imageAssetPath,
       unitId: unitId ?? this.unitId,
       labels: labels ?? this.labels,
+      totalSteps: totalSteps ?? this.totalSteps
     );
   }
 }

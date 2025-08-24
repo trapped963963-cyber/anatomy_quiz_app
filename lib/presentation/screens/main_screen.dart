@@ -74,7 +74,7 @@ class MainScreen extends ConsumerWidget {
                   context,
                   title: 'مسار التعلم',
                   icon: Icons.map,
-                  onTap: () => context.push('/path'),
+                  onTap: () => context.push('/units'),
                 ),
                 SizedBox(height: 10.h),
                 _buildSecondaryButton(

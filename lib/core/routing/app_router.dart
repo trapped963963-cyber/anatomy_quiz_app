@@ -94,6 +94,10 @@ class AppRouter {
           );
         },
       ),
+      GoRoute(
+        path: '/units',
+        builder: (context, state) => const UnitsScreen(),
+      ),
     ],
   );
 }
