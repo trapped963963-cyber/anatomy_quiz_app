@@ -106,7 +106,7 @@ class ReviewStepScreen extends ConsumerWidget {
           Expanded(
             flex: 2,
             child: QuestionWidget(
-              key: ValueKey(currentQuestion),
+              key: UniqueKey(),
               question: currentQuestion,
               onAnswered: (isCorrect) => reviewNotifier.answer(isCorrect),
             ),

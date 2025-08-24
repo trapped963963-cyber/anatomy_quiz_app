@@ -5,6 +5,7 @@ import 'package:anatomy_quiz_app/presentation/providers/quiz_provider.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/quiz/diagram_widget.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/quiz/question_widget.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:anatomy_quiz_app/data/models/question.dart';
 
 class StepScreen extends ConsumerStatefulWidget {
   final int levelId;
@@ -42,9 +43,23 @@ class _StepScreenState extends ConsumerState<StepScreen> {
 
     ref.listen<QuizState>(quizProvider, (previous, next) {
       if (next.isFinished) {
+
+      // --- START: NEW DE-DUPLICATION LOGIC ---
+      final seenKeys = <String>{};
+      final uniqueWronglyAnswered = <Question>[];
+      for (var question in next.wronglyAnswered) {
+        // Create the same unique key we used for the ValueKey
+        final key = '${question.correctLabel.id}_${question.questionType.toString()}';
+        // Set.add() returns true if the item was added (i.e., it wasn't already in the set)
+        if (seenKeys.add(key)) {
+          uniqueWronglyAnswered.add(question);
+        }
+      }
+      // --- END: NEW DE-DUPLICATION LOGIC ---
+
         // Navigate to the end screen with results
         final totalQuestions = next.questions.length;
-        final totalWrong = next.wronglyAnswered.length;
+        final totalWrong = uniqueWronglyAnswered.length;
         final totalCorrect = totalQuestions - totalWrong;
 
         // Use context.pushReplacement to prevent going back to the quiz
@@ -55,7 +70,7 @@ class _StepScreenState extends ConsumerState<StepScreen> {
             'stepNumber': widget.stepNumber,
             'totalCorrect': totalCorrect,
             'totalWrong': totalWrong,
-            'wronglyAnswered': next.wronglyAnswered,
+            'wronglyAnswered': uniqueWronglyAnswered,
           },
         );
       }
