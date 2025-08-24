@@ -5,3 +5,4 @@ export 'question.dart';
 export 'quiz_config.dart';
 export 'user_progress.dart';
 export 'unit.dart';
+export 'diagram_with_progress.dart';
