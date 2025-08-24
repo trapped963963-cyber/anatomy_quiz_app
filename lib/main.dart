@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
-import 'package:flutter_localizations/flutter_localizations.dart'; // <-- IMPORT THIS
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:anatomy_quiz_app/core/routing/app_router.dart';
 
 

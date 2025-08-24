@@ -47,6 +47,8 @@ class _QuestionWidgetState extends ConsumerState<QuestionWidget> {
   Label? _selectedTitle;
   bool _isCheckingMatch = false;
   Set<int> _disappearingIds = {}; 
+  int? _shakingNumberId;
+  int? _shakingTitleId;
   
   @override
   void initState() {
@@ -177,6 +179,73 @@ class _QuestionWidgetState extends ConsumerState<QuestionWidget> {
       _selectedAnswerId = selectedChoice.id;
     });
   }
+  void _handleSelectionMatching(Label label, bool isNumber) {
+  if (_isCheckingMatch) return;
+
+  setState(() {
+    if (isNumber) {
+      _selectedNumber = label;
+    } else {
+      _selectedTitle = label;
+    }
+  });
+
+  // If both a number and a title have been selected, check for a match.
+  if (_selectedNumber != null && _selectedTitle != null) {
+    setState(() => _isCheckingMatch = true);
+    final bool isCorrect = _selectedNumber!.id == _selectedTitle!.id;
+    final settings = ref.read(settingsProvider);
+
+    if (isCorrect) {
+      ref.read(soundServiceProvider).playCorrectSound();
+      // Correct Match: Trigger fade-out animation
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (!mounted) return;
+        setState(() {
+          _disappearingIds.add(_selectedNumber!.id);
+        });
+
+        // After the animation, permanently remove the items.
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (!mounted) return;
+          setState(() {
+            _remainingNumbers.removeWhere((item) => item.id == _selectedNumber!.id);
+            _remainingTitles.removeWhere((item) => item.id == _selectedTitle!.id);
+            _selectedNumber = null;
+            _selectedTitle = null;
+            _isCheckingMatch = false;
+
+            if (_remainingNumbers.isEmpty) {
+              widget.onAnswered(true);
+            }
+          });
+        });
+      });
+    } else {
+      // Incorrect Match: Trigger shake animation
+      ref.read(soundServiceProvider).playIncorrectSound();
+      if (settings['haptics']!) {
+        HapticFeedback.heavyImpact();
+      }
+      setState(() {
+        _shakingNumberId = _selectedNumber!.id;
+        _shakingTitleId = _selectedTitle!.id;
+      });
+
+      // After the animation, reset the selections.
+      Future.delayed(const Duration(milliseconds: 600), () {
+        if (!mounted) return;
+        setState(() {
+          _selectedNumber = null;
+          _selectedTitle = null;
+          _shakingNumberId = null;
+          _shakingTitleId = null;
+          _isCheckingMatch = false;
+        });
+      });
+    }
+  }
+}
 
   void _handleCheck() {
     if (_selectedAnswerId == null || _isAnswered) return;
@@ -694,135 +763,121 @@ class _QuestionWidgetState extends ConsumerState<QuestionWidget> {
   });
 }
 
-  Widget _buildMatchingUi() {
-    void _handleSelection(Label label, bool isNumber) {
-      if (_isCheckingMatch) return;
+// In your _QuestionWidgetState class
 
-      setState(() {
-        if (isNumber) {
-          _selectedNumber = label;
-        } else {
-          _selectedTitle = label;
-        }
-      });
+Widget _buildMatchingUi() {
+  // ## STEP 1: Define all the necessary styles ##
+  final ButtonStyle normalStyle = ElevatedButton.styleFrom(
+    padding: EdgeInsets.symmetric(horizontal: 16.w),
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    backgroundColor: AppColors.primary,
+    foregroundColor: Colors.white,
+    elevation: 2,
+  );
+  final ButtonStyle selectedStyle = ElevatedButton.styleFrom(
+    padding: EdgeInsets.symmetric(horizontal: 16.w),
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    backgroundColor: AppColors.primaryDark,
+    foregroundColor: Colors.white,
+    side: BorderSide(color: AppColors.accent, width: 3.w),
+  );
+  final ButtonStyle correctStyle = ElevatedButton.styleFrom(
+    padding: EdgeInsets.symmetric(horizontal: 16.w),
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    backgroundColor: AppColors.correct,
+    foregroundColor: Colors.white,
+  );
+  final ButtonStyle incorrectStyle = ElevatedButton.styleFrom(
+    padding: EdgeInsets.symmetric(horizontal: 16.w),
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    backgroundColor: AppColors.incorrect,
+    foregroundColor: Colors.white,
+  );
 
-      if (_selectedNumber != null && _selectedTitle != null) {
-        setState(() => _isCheckingMatch = true);
-        final bool isCorrect = _selectedNumber!.id == _selectedTitle!.id;
-
-        // This delay is now just for showing the red/green feedback.
-        Future.delayed(const Duration(milliseconds: 600), () {
-          if (!mounted) return;
-
-          if (isCorrect) {
-            // 1. Trigger the fade-out animation.
-            setState(() {
-              _disappearingIds.add(_selectedNumber!.id);
-            });
-
-            // 2. After the animation, permanently remove the items.
-            Future.delayed(const Duration(milliseconds: 300), () {
-              if (!mounted) return;
-              setState(() {
-                _remainingNumbers.removeWhere((item) => item.id == _selectedNumber!.id);
-                _remainingTitles.removeWhere((item) => item.id == _selectedTitle!.id);
-                _selectedNumber = null;
-                _selectedTitle = null;
-                _isCheckingMatch = false;
-
-                if (_remainingNumbers.isEmpty) {
-                  widget.onAnswered(true);
-                }
-              });
-            });
-          } else {
-            // If incorrect, just reset the selections.
-            setState(() {
-              _selectedNumber = null;
-              _selectedTitle = null;
-              _isCheckingMatch = false;
-            });
-          }
-        });
-      }
+  // Helper function to build a single button
+  Widget buildMatchButton(Label item, bool isNumber) {
+    final bool isSelected = (isNumber ? _selectedNumber?.id : _selectedTitle?.id) == item.id;
+    final bool isShaking = (isNumber ? _shakingNumberId : _shakingTitleId) == item.id;
+    
+    // ## STEP 2: Add the new styling logic ##
+    ButtonStyle currentStyle;
+    if (_isCheckingMatch && isSelected) {
+      // If we are currently checking a match, color the selected buttons red or green.
+      final bool isMatchCorrect = _selectedNumber!.id == _selectedTitle!.id;
+      currentStyle = isMatchCorrect ? correctStyle : incorrectStyle;
+    } else if (isSelected) {
+      // If an item is just selected, use the selected style.
+      currentStyle = selectedStyle;
+    } else {
+      // Otherwise, use the normal style.
+      currentStyle = normalStyle;
     }
+    
+    Widget button = ElevatedButton(
+      style: currentStyle,
+      onPressed: () => _handleSelectionMatching(item, isNumber),
+      child: isNumber
+          ? Text(item.labelNumber.toString(), style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold))
+          : AutoSizeText(
+              item.title,
+              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+              maxLines: 2,
+              minFontSize: 12,
+              textAlign: TextAlign.center,
+            ),
+    );
 
-    return Column(
-      children: [
-        Text(
-          widget.question.questionText,
-          style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center,
-        ),
-        SizedBox(height: 16.h),
-        // Titles Pool
-        _buildChoicePool(_remainingTitles, false, _selectedTitle, _handleSelection),
-        SizedBox(height: 16.h),
-        // Numbers Pool
-        _buildChoicePool(_remainingNumbers, true, _selectedNumber, _handleSelection),
-      ],
+    if (isShaking) {
+      return button.animate().shake(hz: 5, duration: 500.ms);
+    }
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 300),
+      opacity: _disappearingIds.contains(item.id) ? 0.0 : 1.0,
+      child: button,
     );
   }
-
-  // Helper widget to build a single scrollable pool.
-  Widget _buildChoicePool(List<Label> items, bool isNumberPool, Label? selectedItem, Function(Label, bool) onSelect) {
-    return SizedBox(
-      height: 60.h,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 12.w),
-        child: Row(
-          children: items.map((item) {
-            final bool isSelected = selectedItem?.id == item.id;
-            final bool isCorrectMatch = _selectedNumber?.id == _selectedTitle?.id;
-
-            Color chipColor = Theme.of(context).chipTheme.backgroundColor ?? Colors.grey.shade200;
-            Widget? avatar;
-
-            if (_isCheckingMatch && isSelected) {
-              chipColor = isCorrectMatch ? AppColors.correct : AppColors.incorrect;
-              // ## 'X' ICON FIX ##
-              // If the match is incorrect, show an 'X' icon.
-              if (!isCorrectMatch) {
-                avatar = const Icon(Icons.close, color: Colors.white, size: 18);
-              }
-            } else if (isSelected) {
-              chipColor = AppColors.accent;
-            }
-
-            return Padding(
-              padding: EdgeInsets.symmetric(horizontal: 4.w),
-              // ## ANIMATION FIX ##
-              // This widget will animate the opacity change when an item is disappearing.
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 300),
-                opacity: _disappearingIds.contains(item.id) ? 0.0 : 1.0,
-                child: ChoiceChip(
-                  avatar: avatar,
-                  label: Text(isNumberPool ? item.labelNumber.toString() : item.title),
-                  selected: isSelected,
-                  onSelected: (val) {
-                    // Prevent tapping an already disappearing item.
-                    if (_disappearingIds.contains(item.id)) return;
-                    onSelect(item, isNumberPool);
-                  },
-                  selectedColor: chipColor,
-                  backgroundColor: chipColor,
-                  labelStyle: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                  // Make the checkmark invisible, since we use color instead.
-                  showCheckmark: false, 
-                ),
-              ),
-            );
-          }).toList(),
+  
+  return Column(
+    children: [
+      Text(
+        widget.question.questionText,
+        style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
+        textAlign: TextAlign.center,
+      ),
+      SizedBox(height: 12.h),
+      Expanded(
+        flex: 1,
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(8.w),
+          child: SingleChildScrollView(
+            child: Wrap(
+              spacing: 8.w,
+              runSpacing: 8.h,
+              alignment: WrapAlignment.center,
+              children: _remainingNumbers.map((item) => buildMatchButton(item, true)).toList(),
+            ),
+          ),
         ),
       ),
-    );
-  }
-
+      const Divider(thickness: 1, indent: 20, endIndent: 20),
+      Expanded(
+        flex: 2,
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(8.w),
+          child: SingleChildScrollView(
+            child: Wrap(
+              spacing: 8.w,
+              runSpacing: 8.h,
+              alignment: WrapAlignment.center,
+              children: _remainingTitles.map((item) => buildMatchButton(item, false)).toList(),
+            ),
+          ),
+        ),
+      ),
+    ],
+  );
+}
  
 }
