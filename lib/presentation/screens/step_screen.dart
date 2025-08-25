@@ -118,6 +118,7 @@ class _StepScreenState extends ConsumerState<StepScreen> {
                 onAnswered: (isCorrect) {
                   quizNotifier.answerQuestion(isCorrect);
                 },
+                mode: QuestionMode.learn, 
               ),
             ),
           ],

@@ -94,6 +94,18 @@ class AppRouter {
         path: '/units',
         builder: (context, state) => const UnitsScreen(),
       ),
+      GoRoute(
+        path: '/quiz/difficulty',
+        builder: (context, state) => const QuizDifficultySelectionScreen(),
+      ),
+      GoRoute(
+        path: '/quiz/in-progress',
+        builder: (context, state) => const QuizInProgressScreen(),
+      ),
+      GoRoute(
+        path: '/quiz/select-content',
+        builder: (context, state) => const QuizContentSelectionScreen(),
+      ),
     ],
   );
 }

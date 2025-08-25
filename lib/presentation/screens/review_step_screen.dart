@@ -109,6 +109,7 @@ class ReviewStepScreen extends ConsumerWidget {
               key: UniqueKey(),
               question: currentQuestion,
               onAnswered: (isCorrect) => reviewNotifier.answer(isCorrect),
+              mode: QuestionMode.learn, 
             ),
           ),
         ],

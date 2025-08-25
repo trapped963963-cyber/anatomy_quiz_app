@@ -5,7 +5,10 @@ export 'activation/promo_code_screen.dart';
 export 'activation/contact_admin_screen.dart';
 export 'activation/activation_code_screen.dart';
 
-// Will add main app screens later
+export 'quiz/quiz_content_selection_screen.dart';
+export 'quiz/quiz_difficulty_selection_screen.dart';
+export 'quiz/quiz_in_progress_screen.dart';
+
 export 'main_screen.dart';
 export 'splash_screen.dart';
 export 'level_screen.dart';

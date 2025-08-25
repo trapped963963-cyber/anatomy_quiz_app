@@ -1,6 +1,7 @@
 import 'package:anatomy_quiz_app/data/models/label.dart';
 
-// Enum to define our 5 question types
+enum QuestionMode { learn, test }
+
 enum QuestionType {
   askForTitle,
   askForNumber,

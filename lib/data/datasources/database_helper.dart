@@ -151,5 +151,18 @@ class DatabaseHelper {
     }));
   }
 
+ Future<List<Label>> getLabelsForDiagrams(List<int> diagramIds) async {
+  if (diagramIds.isEmpty) return [];
+  final db = await database;
+  // Use a 'WHERE IN' clause to get all labels for the selected diagrams at once.
+  final placeholders = ('?' * diagramIds.length).split('').join(',');
+  final List<Map<String, dynamic>> maps = await db.query(
+    'labels',
+    where: 'diagram_id IN ($placeholders)',
+    whereArgs: diagramIds,
+  );
+  return List.generate(maps.length, (i) => Label.fromMap(maps[i]));
+}
+
 
 }

@@ -6,3 +6,4 @@ export 'quiz_config.dart';
 export 'user_progress.dart';
 export 'unit.dart';
 export 'diagram_with_progress.dart';
+export 'custom_quiz_config.dart';

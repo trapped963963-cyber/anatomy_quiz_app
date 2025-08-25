@@ -15,11 +15,13 @@ import 'package:google_fonts/google_fonts.dart';
 class QuestionWidget extends ConsumerStatefulWidget {
   final Question question;
   final Function(bool isCorrect) onAnswered;
+  final QuestionMode mode;
 
   const QuestionWidget({
     super.key,
     required this.question,
     required this.onAnswered,
+    this.mode = QuestionMode.learn,
   });
 
   @override
@@ -74,8 +76,20 @@ class _QuestionWidgetState extends ConsumerState<QuestionWidget> {
       });
     }
   }
+  void _processAnswer(bool isCorrect) {
+    // This switch statement is the new "brain" of the widget.
+    switch (widget.mode) {
+      case QuestionMode.learn:
+        _runLearnModeFeedback(isCorrect);
+        break;
+      case QuestionMode.test:
+        // In test mode, we just record the answer and move on.
+        widget.onAnswered(isCorrect);
+        break;
+    }
+  }
 
-  Future<void> _processAnswer(bool isCorrect) async {
+  Future<void> _runLearnModeFeedback(bool isCorrect) async {
     final settings = ref.read(settingsProvider);
     setState(() {
       _isAnswered = true;
@@ -509,7 +523,7 @@ class _QuestionWidgetState extends ConsumerState<QuestionWidget> {
 
         // 3. The button's text changes based on the state.
         child: Text(
-          _isAnswered ? 'التالي' : 'تحقق',
+          widget.mode == QuestionMode.test ? 'التالي' : (_isAnswered ? 'التالي' : 'تحقق'),
           style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
         ),
       ),
@@ -679,7 +693,7 @@ class _QuestionWidgetState extends ConsumerState<QuestionWidget> {
             : null,
             // 3. The child's text changes based on the state.
             child: Text(
-              _isAnswered ? 'التالي' : 'تحقق',
+              widget.mode == QuestionMode.test ? 'التالي' : (_isAnswered ? 'التالي' : 'تحقق'),
               style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
             ),
           ),

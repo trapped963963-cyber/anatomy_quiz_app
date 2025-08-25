@@ -81,9 +81,7 @@ class MainScreen extends ConsumerWidget {
                   context,
                   title: 'اختبار عام',
                   icon: Icons.quiz,
-                  onTap: () {
-                    // We will build this screen later
-                  },
+                  onTap: () => context.push('/quiz/select-content'),
                 ),
               ],
             ),
