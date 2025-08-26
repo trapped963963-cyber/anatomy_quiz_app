@@ -49,17 +49,15 @@ class ReviewQueueNotifier extends StateNotifier<ReviewQueueState> {
 
 class ReviewStepScreen extends ConsumerWidget {
   final List<Question> questionsToReview;
-  final int levelId;
-  final int stepNumber;
-  
+  final VoidCallback onReviewCompleted;
+
   const ReviewStepScreen({super.key, 
-  required this.questionsToReview,
-  required this.levelId,
-  required this.stepNumber  });
+    required this.questionsToReview,
+    required this.onReviewCompleted,
+  });
   
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Initialize the queue only once
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!ref.read(reviewQueueProvider).isInitialized) {
         ref.read(reviewQueueProvider.notifier).startReview(questionsToReview);
@@ -74,7 +72,7 @@ class ReviewStepScreen extends ConsumerWidget {
       
        WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) {
-            context.go('/final-matching/$levelId/$stepNumber');
+            onReviewCompleted();
           }
         });
 

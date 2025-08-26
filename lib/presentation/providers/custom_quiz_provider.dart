@@ -42,9 +42,12 @@ final customQuizQuestionsProvider = FutureProvider.autoDispose<List<Question>>((
   }
   
   // 3. Determine the pool of allowed question types (excluding matching).
-  List<QuestionType> allowedTypes = [QuestionType.askForTitle, QuestionType.askForNumber, QuestionType.askFromDef];
-  if (config.difficulty.index >= 1) allowedTypes.add(QuestionType.askToWriteTitle);
-  
+  List<QuestionType> allowedTypes = 
+    [ QuestionType.askForTitle, 
+      QuestionType.askForNumber, 
+      QuestionType.askFromDef,
+      QuestionType.askToWriteTitle];
+      
   // 4. PRE-FLIGHT CHECK: Calculate the max possible questions and adjust if needed.
   final maxPossibleQuestions = allPossibleLabels.length * allowedTypes.length;
   final finalQuestionCount = min(config.questionCount, maxPossibleQuestions);
@@ -52,7 +55,6 @@ final customQuizQuestionsProvider = FutureProvider.autoDispose<List<Question>>((
   // 5. GENERATION LOOP: Build the quiz while guaranteeing no repeats.
   final List<Question> questions = [];
   final Set<String> usedQuestionIds = {};
-  final random = Random();
   
   // Shuffle the master list of labels once to ensure variety.
   final shuffledLabels = List<Label>.from(allPossibleLabels)..shuffle();
@@ -117,4 +119,21 @@ final customQuizQuestionsProvider = FutureProvider.autoDispose<List<Question>>((
   }
 
   return questions;
+});
+
+// This provider calculates the maximum number of unique questions possible
+// based on the user's current diagram selection.
+final maxQuestionsProvider = FutureProvider.autoDispose<int>((ref) async {
+  final config = ref.watch(customQuizConfigProvider);
+  final dbHelper = ref.watch(databaseHelperProvider);
+
+  if (config.selectedDiagramIds.isEmpty) {
+    return 0;
+  }
+
+  final allPossibleLabels = await dbHelper.getLabelsForDiagrams(config.selectedDiagramIds.toList());
+
+  // For this calculation, we assume the hardest difficulty, which allows all 4 question types.
+  // The number of unique questions is simply the number of labels times 4.
+  return allPossibleLabels.length * 4;
 });

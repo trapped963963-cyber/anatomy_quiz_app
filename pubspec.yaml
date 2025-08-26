@@ -53,6 +53,7 @@ dependencies:
   intl: ^0.20.2 # For date formatting
   flutter_animate: ^4.5.0
   auto_size_text: ^3.0.0
+  percent_indicator: ^4.2.3
   
   # Icons and Animations (optional but good for gamification)
   flutter_svg: ^2.0.10+1

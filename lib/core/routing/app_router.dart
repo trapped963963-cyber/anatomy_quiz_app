@@ -1,6 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:anatomy_quiz_app/presentation/screens/screens.dart';
-
+import 'package:anatomy_quiz_app/data/models/models.dart';
 class AppRouter {
   static final router = GoRouter(
     initialLocation: '/', // Start at the splash screen
@@ -69,13 +69,15 @@ class AppRouter {
           },
       ),
       GoRoute(
-        path: '/review',
+        path: '/review', // For the main learning path
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>;
           return ReviewStepScreen(
             questionsToReview: extra['questions'],
-            levelId: extra['levelId'],
-            stepNumber: extra['stepNumber'],
+            onReviewCompleted: () {
+              // When this review is done, go to the final matching screen.
+              context.go('/final-matching/${extra['levelId']}/${extra['stepNumber']}');
+            },
           );
         },
       ),
@@ -105,6 +107,27 @@ class AppRouter {
       GoRoute(
         path: '/quiz/select-content',
         builder: (context, state) => const QuizContentSelectionScreen(),
+      ),
+      GoRoute(
+        path: '/quiz/end',
+        builder: (context, state) => const QuizEndScreen(),
+      ),
+      GoRoute(
+        path: '/quiz/review', // For the custom quiz
+        builder: (context, state) {
+          final questions = state.extra as List<Question>;
+          return ReviewStepScreen(
+            questionsToReview: questions,
+            onReviewCompleted: () {
+              // When this review is done, go to the quiz review end screen.
+              context.go('/quiz/review-end');
+            },
+          );
+        },
+      ),
+      GoRoute(
+        path: '/quiz/review-end',
+        builder: (context, state) => const ReviewEndScreen(),
       ),
     ],
   );
