@@ -5,6 +5,7 @@ class AnatomicalDiagram {
   final int diagramNumber;
   final String title;
   final String imageAssetPath;
+  final String labeledImageAssetPath;
   final int unitId; 
   final List<Label> labels;
   final int totalSteps; 
@@ -14,6 +15,7 @@ class AnatomicalDiagram {
     required this.diagramNumber,
     required this.title,
     required this.imageAssetPath,
+    required this.labeledImageAssetPath,
     required this.unitId,
     this.labels = const [],
     this.totalSteps = 0,
@@ -25,6 +27,7 @@ class AnatomicalDiagram {
       title: map['title'],
       diagramNumber: map['number'],
       imageAssetPath: map['imageAssetPath'],
+      labeledImageAssetPath: map['labeledImageAssetPath'],
       unitId: map['unit_id'],
     );
   }
@@ -34,6 +37,7 @@ class AnatomicalDiagram {
     int? diagramNumber,
     String? title,
     String? imageAssetPath,
+    String? labeledImageAssetPath,
     int? unitId, 
     List<Label>? labels,
     int? totalSteps, 
@@ -44,6 +48,7 @@ class AnatomicalDiagram {
       diagramNumber: diagramNumber ?? this.diagramNumber,
       title: title ?? this.title,
       imageAssetPath: imageAssetPath ?? this.imageAssetPath,
+      labeledImageAssetPath: labeledImageAssetPath ?? this.labeledImageAssetPath,
       unitId: unitId ?? this.unitId,
       labels: labels ?? this.labels,
       totalSteps: totalSteps ?? this.totalSteps
