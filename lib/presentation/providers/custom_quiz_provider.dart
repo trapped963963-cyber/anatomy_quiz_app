@@ -82,7 +82,18 @@ final customQuizQuestionsProvider = FutureProvider.autoDispose<List<Question>>((
         if (type == QuestionType.askForTitle) {
           // For 'askForTitle', decoys can come from ANY selected diagram.
           questionText = 'ما هو اسم الجزء رقم ${currentLabel.labelNumber}؟';
-          choices = (allPossibleLabels.where((l) => l.id != currentLabel.id).toList()..shuffle()).take(3).toList();
+        
+          final Set<String> usedTitles = {currentLabel.title};
+          choices = [currentLabel];
+          final shuffledDecoys = allPossibleLabels.where((l) => l.id != currentLabel.id).toList()..shuffle();
+
+          for (var decoy in shuffledDecoys) {
+            if (choices.length >= 4) break;
+            if (!usedTitles.contains(decoy.title)) {
+              choices.add(decoy);
+              usedTitles.add(decoy.title);
+            }
+          }
         } else if (type == QuestionType.askToWriteTitle) {
           questionText = 'اكتب اسم الجزء رقم ${currentLabel.labelNumber}';
         } else { // For 'askForNumber' and 'askFromDef'

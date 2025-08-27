@@ -19,7 +19,6 @@ class QuizContentSelectionScreen extends ConsumerStatefulWidget {
 
 class _QuizContentSelectionScreenState extends ConsumerState<QuizContentSelectionScreen> {
   late Set<int> _selectedDiagramIds;
-  // ## NEW: State to track which units are expanded ##
   final Set<int> _expandedUnitIds = {};
 
   @override

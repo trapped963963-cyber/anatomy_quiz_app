@@ -150,7 +150,8 @@ class _StepScreenState extends ConsumerState<StepScreen> {
                 // Close the dialog and then exit the screen
                 // We use context.pop() here from go_router, which is aware of the navigation stack.
                 Navigator.of(dialogContext).pop();
-                context.pop();
+                context.go('/home');
+                context.push('/level/${widget.levelId}');
               },
             ),
           ],

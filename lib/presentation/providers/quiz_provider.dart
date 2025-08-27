@@ -57,6 +57,15 @@ class QuizNotifier extends StateNotifier<QuizState> {
       finalQuestions = [...initialQuestions, ...reinforcementQuestions.sublist(0, 46)];
     }
 
+    final matchingQuestion = Question(
+      questionType: QuestionType.matching,
+      diagramId: levelId,
+      correctLabel: allLearnedLabels.first, // Placeholder
+      questionText: 'للإتقان، قم بمطابقة جميع الأجزاء التي درستها حتى الآن.',
+      choices: allLearnedLabels,
+    );
+    finalQuestions.add(matchingQuestion);
+
     state = QuizState(questions: finalQuestions);
   }
 

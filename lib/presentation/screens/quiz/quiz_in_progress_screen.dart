@@ -58,7 +58,7 @@ class _QuizInProgressScreenState extends ConsumerState<QuizInProgressScreen> wit
           allQuestions: questions,
           incorrectAnswers: _incorrectAnswers,
         );
-    if(mounted) context.go('/quiz/end');
+    if(mounted) context.pushReplacement('/quiz/end');
   }
   void _showExitConfirmationDialog() {
     _timer?.cancel(); // Pause the timer when the dialog is open

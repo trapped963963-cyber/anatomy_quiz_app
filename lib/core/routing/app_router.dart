@@ -69,26 +69,18 @@ class AppRouter {
           },
       ),
       GoRoute(
-        path: '/review', // For the main learning path
+        path: '/review',
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>;
           return ReviewStepScreen(
             questionsToReview: extra['questions'],
             onReviewCompleted: () {
-              // When this review is done, go to the final matching screen.
-              context.go('/final-matching/${extra['levelId']}/${extra['stepNumber']}');
+              context.pushReplacement('/step-complete/${extra['levelId']}/${extra['stepNumber']}');
             },
-          );
-        },
-      ),
-      GoRoute(
-        path: '/final-matching/:levelId/:stepNumber',
-        builder: (context, state) {
-          final levelId = int.parse(state.pathParameters['levelId']!);
-          final stepNumber = int.parse(state.pathParameters['stepNumber']!);
-          return FinalMatchingScreen(
-            levelId: levelId,
-            stepNumber: stepNumber,
+            onExit: () {
+              context.go('/home');
+              context.push('/level/${extra['levelId']}');
+            },
           );
         },
       ),
@@ -113,14 +105,16 @@ class AppRouter {
         builder: (context, state) => const QuizEndScreen(),
       ),
       GoRoute(
-        path: '/quiz/review', // For the custom quiz
+        path: '/quiz/review',
         builder: (context, state) {
           final questions = state.extra as List<Question>;
           return ReviewStepScreen(
             questionsToReview: questions,
             onReviewCompleted: () {
-              // When this review is done, go to the quiz review end screen.
               context.go('/quiz/review-end');
+            },
+            onExit: () {
+              context.pop();
             },
           );
         },
@@ -128,6 +122,14 @@ class AppRouter {
       GoRoute(
         path: '/quiz/review-end',
         builder: (context, state) => const ReviewEndScreen(),
+      ),
+      GoRoute(
+        path: '/step-complete/:levelId/:stepNumber',
+        builder: (context, state) {
+          final levelId = int.parse(state.pathParameters['levelId']!);
+          final stepNumber = int.parse(state.pathParameters['stepNumber']!);
+          return StepCompleteScreen(levelId: levelId, stepNumber: stepNumber);
+        },
       ),
     ],
   );

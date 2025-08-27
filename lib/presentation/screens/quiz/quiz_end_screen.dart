@@ -100,9 +100,9 @@ class QuizEndScreen extends ConsumerWidget {
                 onPressed: () {
                   // Reset the old quiz configuration
                   ref.read(customQuizConfigProvider.notifier).reset();
-                  // Go back to the beginning of the quiz creation flow
-                  context.go('/quiz/select-content');
-                },
+                  context.go('/home');
+                  context.push('/quiz/select-content');                
+                  },
                 child: const Text('بدء اختبار جديد'),
               ),
 
