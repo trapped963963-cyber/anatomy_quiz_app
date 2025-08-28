@@ -164,5 +164,27 @@ class DatabaseHelper {
   return List.generate(maps.length, (i) => Label.fromMap(maps[i]));
 }
 
+Future<Map<String, int>> getLabelCounts(List<int> diagramIds) async {
+  if (diagramIds.isEmpty) return {'total': 0, 'withDef': 0};
+  final db = await database;
+  final placeholders = ('?' * diagramIds.length).split('').join(',');
+
+  // Query 1: Get the total number of labels.
+  final totalResult = await db.rawQuery(
+    'SELECT COUNT(*) FROM labels WHERE diagram_id IN ($placeholders)',
+    diagramIds,
+  );
+  final totalCount = Sqflite.firstIntValue(totalResult) ?? 0;
+
+  // Query 2: Get the count of labels that have a non-empty definition.
+  // We check for NULL, empty string '', and strings with only spaces ' '.
+  final withDefResult = await db.rawQuery(
+    "SELECT COUNT(*) FROM labels WHERE diagram_id IN ($placeholders) AND definition IS NOT NULL AND TRIM(definition) != ''",
+    diagramIds,
+  );
+  final withDefCount = Sqflite.firstIntValue(withDefResult) ?? 0;
+
+  return {'total': totalCount, 'withDef': withDefCount};
+}
 
 }

@@ -25,6 +25,9 @@ final customQuizConfigProvider =
 });
 // At the top of custom_quiz_provider.dart
 
+// This is the final, complete provider.
+
+// This is the final, intelligent quiz generation engine.
 final customQuizQuestionsProvider = FutureProvider.autoDispose<List<Question>>((ref) async {
   // 1. Get the user's config and the database helper.
   final config = ref.watch(customQuizConfigProvider);
@@ -32,75 +35,74 @@ final customQuizQuestionsProvider = FutureProvider.autoDispose<List<Question>>((
   
   if (config.selectedDiagramIds.isEmpty) return [];
 
-  // 2. Fetch all possible labels and group them by diagram for smart choice generation.
-  final allPossibleLabels = await dbHelper.getLabelsForDiagrams(config.selectedDiagramIds.toList());
-  if (allPossibleLabels.isEmpty) return [];
+  // 2. Pre-flight Check: Accurately calculate the max questions and adjust if needed.
+  final counts = await dbHelper.getLabelCounts(config.selectedDiagramIds.toList());
+  final totalLabels = counts['total'] ?? 0;
+  final labelsWithDef = counts['withDef'] ?? 0;
 
+  List<QuestionType> baseAllowedTypes = [
+    QuestionType.askForTitle,
+    QuestionType.askForNumber,
+    QuestionType.askToWriteTitle
+  ];
+  
+  final maxPossibleQuestions = (totalLabels * baseAllowedTypes.length) + labelsWithDef;
+  final finalQuestionCount = min(config.questionCount, maxPossibleQuestions);
+
+  if (finalQuestionCount == 0) return [];
+  
+  // 3. Fetch all labels and group them by diagram for smart choice generation.
+  final allPossibleLabels = await dbHelper.getLabelsForDiagrams(config.selectedDiagramIds.toList());
   final Map<int, List<Label>> labelsByDiagram = {};
   for (var label in allPossibleLabels) {
     (labelsByDiagram[label.diagramId] ??= []).add(label);
   }
   
-  // 3. Determine the pool of allowed question types (excluding matching).
-  List<QuestionType> allowedTypes = 
-    [ QuestionType.askForTitle, 
-      QuestionType.askForNumber, 
-      QuestionType.askFromDef,
-      QuestionType.askToWriteTitle];
-      
-  // 4. PRE-FLIGHT CHECK: Calculate the max possible questions and adjust if needed.
-  final maxPossibleQuestions = allPossibleLabels.length * allowedTypes.length;
-  final finalQuestionCount = min(config.questionCount, maxPossibleQuestions);
-
-  // 5. GENERATION LOOP: Build the quiz while guaranteeing no repeats.
+  // 4. GENERATION LOOP: Build the quiz while guaranteeing no repeats.
   final List<Question> questions = [];
   final Set<String> usedQuestionIds = {};
+  final random = Random();
   
-  // Shuffle the master list of labels once to ensure variety.
   final shuffledLabels = List<Label>.from(allPossibleLabels)..shuffle();
   int labelIndex = 0;
 
   while (questions.length < finalQuestionCount) {
-    // Get the next label, cycling through the list if we run out.
+    // Cycle through labels to ensure variety.
     final currentLabel = shuffledLabels[labelIndex % shuffledLabels.length];
     labelIndex++;
 
-    // Shuffle the allowed types to try them in a random order.
-    final shuffledTypes = List<QuestionType>.from(allowedTypes)..shuffle();
+    // Build the list of valid question types for THIS specific label.
+    List<QuestionType> possibleTypesForThisLabel = List.from(baseAllowedTypes);
+    if (currentLabel.definition.trim().isNotEmpty) {
+      possibleTypesForThisLabel.add(QuestionType.askFromDef);
+    }
+    
+    final shuffledTypes = possibleTypesForThisLabel..shuffle();
 
     for (var type in shuffledTypes) {
       final questionId = '${currentLabel.diagramId}_${currentLabel.labelNumber}_$type';
 
-      // If we haven't used this exact question yet...
-      if (!usedQuestionIds.contains(questionId)) {
-        usedQuestionIds.add(questionId); // Mark it as used.
-
+      if (usedQuestionIds.add(questionId)) { // If the question is new...
         String questionText = '';
         List<Label> choices = [];
         
         // --- SMART CHOICE GENERATION LOGIC ---
         if (type == QuestionType.askForTitle) {
-          // For 'askForTitle', decoys can come from ANY selected diagram.
           questionText = 'ما هو اسم الجزء رقم ${currentLabel.labelNumber}؟';
-        
           final Set<String> usedTitles = {currentLabel.title};
           choices = [currentLabel];
-          final shuffledDecoys = allPossibleLabels.where((l) => l.id != currentLabel.id).toList()..shuffle();
-
-          for (var decoy in shuffledDecoys) {
+          final decoys = allPossibleLabels.where((l) => l.id != currentLabel.id).toList()..shuffle();
+          for (var decoy in decoys) {
             if (choices.length >= 4) break;
-            if (!usedTitles.contains(decoy.title)) {
+            if (usedTitles.add(decoy.title)) {
               choices.add(decoy);
-              usedTitles.add(decoy.title);
             }
           }
         } else if (type == QuestionType.askToWriteTitle) {
           questionText = 'اكتب اسم الجزء رقم ${currentLabel.labelNumber}';
         } else { // For 'askForNumber' and 'askFromDef'
-          // Decoys must come ONLY from the same diagram.
           final diagramSpecificLabels = labelsByDiagram[currentLabel.diagramId]!;
           choices = (diagramSpecificLabels.where((l) => l.id != currentLabel.id).toList()..shuffle())
-              // Handle diagrams with less than 4 labels gracefully.
               .take(min(3, diagramSpecificLabels.length - 1)) 
               .toList();
           
@@ -112,7 +114,9 @@ final customQuizQuestionsProvider = FutureProvider.autoDispose<List<Question>>((
         }
 
         if (type != QuestionType.askToWriteTitle) {
-          choices.add(currentLabel);
+          if (!choices.any((c) => c.id == currentLabel.id)) {
+            choices.add(currentLabel);
+          }
           choices.shuffle();
         }
 
@@ -124,7 +128,7 @@ final customQuizQuestionsProvider = FutureProvider.autoDispose<List<Question>>((
           choices: choices,
         ));
         
-        break; // Move to the next question in the main while loop.
+        break; // Found a unique question, move to the next in the while loop.
       }
     }
   }
@@ -132,8 +136,6 @@ final customQuizQuestionsProvider = FutureProvider.autoDispose<List<Question>>((
   return questions;
 });
 
-// This provider calculates the maximum number of unique questions possible
-// based on the user's current diagram selection.
 final maxQuestionsProvider = FutureProvider.autoDispose<int>((ref) async {
   final config = ref.watch(customQuizConfigProvider);
   final dbHelper = ref.watch(databaseHelperProvider);
@@ -142,9 +144,13 @@ final maxQuestionsProvider = FutureProvider.autoDispose<int>((ref) async {
     return 0;
   }
 
-  final allPossibleLabels = await dbHelper.getLabelsForDiagrams(config.selectedDiagramIds.toList());
+  final counts = await dbHelper.getLabelCounts(config.selectedDiagramIds.toList());
+  final totalLabels = counts['total'] ?? 0;
+  final labelsWithDef = counts['withDef'] ?? 0;
 
-  // For this calculation, we assume the hardest difficulty, which allows all 4 question types.
-  // The number of unique questions is simply the number of labels times 4.
-  return allPossibleLabels.length * 4;
+  // Calculate the max questions. Each label has 3 base question types.
+  // An additional question type is available only for labels with definitions.
+  final maxQuestions = (totalLabels * 3) + labelsWithDef;
+
+  return maxQuestions;
 });

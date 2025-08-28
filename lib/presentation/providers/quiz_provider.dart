@@ -116,40 +116,52 @@ class QuizNotifier extends StateNotifier<QuizState> {
     );
   }
 
-  List<Question> _generateInitialQuestions(Label newLabel, int diagramId, List<Label> allLearnedLabels) {
-    return [
-      _createMcq(newLabel, allLearnedLabels, QuestionType.askForTitle, diagramId),
-      _createMcq(newLabel, allLearnedLabels, QuestionType.askForNumber, diagramId),
-      _createMcq(newLabel, allLearnedLabels, QuestionType.askFromDef, diagramId),
-      Question( // askToWriteTitle
-        questionType: QuestionType.askToWriteTitle,
-        diagramId: diagramId,
-        correctLabel: newLabel,
-        questionText: 'اكتب اسم الجزء رقم ${newLabel.labelNumber}',
-        choices: [],
-      ),
-    ];
+ List<Question> _generateInitialQuestions(Label newLabel, int diagramId, List<Label> allLearnedLabels) {
+  // Start with the three guaranteed question types.
+  List<Question> questions = [
+    _createMcq(newLabel, allLearnedLabels, QuestionType.askForTitle, diagramId),
+    _createMcq(newLabel, allLearnedLabels, QuestionType.askForNumber, diagramId),
+    Question(
+      questionType: QuestionType.askToWriteTitle,
+      diagramId: diagramId,
+      correctLabel: newLabel,
+      questionText: 'اكتب اسم الجزء رقم ${newLabel.labelNumber}',
+      choices: [],
+    ),
+  ];
+
+  // ## THE FIX ##
+  // Only add the "ask from definition" question if the definition is not empty.
+  if (newLabel.definition.trim().isNotEmpty) {
+    questions.add(_createMcq(newLabel, allLearnedLabels, QuestionType.askFromDef, diagramId));
   }
+
+  return questions;
+}
 
   List<Question> _generateReinforcementQuestions(List<Label> previousLabels, int diagramId, List<Label> allLearnedLabels) {
     if (previousLabels.isEmpty) return [];
-    
-    List<Question> questions = [];
-      // Define the pool of all possible question types.
-    final allQuestionTypes = [
-      QuestionType.askForTitle,
-      QuestionType.askForNumber,
-      QuestionType.askFromDef,
-      QuestionType.askToWriteTitle,
-    ];
-    
-    // Loop through each previously learned label.
-    for (var label in previousLabels) {
-      // Shuffle the list of types and pick the first two.
-      // This guarantees we get two different types for each label.
-      final chosenTypes = (List.from(allQuestionTypes)..shuffle()).sublist(0, 2);
 
-      // Now, create one question for each of the two chosen types.
+    List<Question> questions = [];
+
+    for (var label in previousLabels) {
+      // ## THE FIX ##
+      // 1. Create a dynamic list of possible types for THIS specific label.
+      final List<QuestionType> possibleTypes = [
+        QuestionType.askForTitle,
+        QuestionType.askForNumber,
+        QuestionType.askToWriteTitle,
+      ];
+
+      // 2. Only add 'askFromDef' if the label has a valid definition.
+      if (label.definition.trim().isNotEmpty) {
+        possibleTypes.add(QuestionType.askFromDef);
+      }
+
+      // 3. Shuffle the valid types and pick two.
+      final chosenTypes = (possibleTypes..shuffle()).sublist(0, 2);
+
+      // The rest of the logic is the same.
       for (var type in chosenTypes) {
         if (type == QuestionType.askToWriteTitle) {
           questions.add(Question(
