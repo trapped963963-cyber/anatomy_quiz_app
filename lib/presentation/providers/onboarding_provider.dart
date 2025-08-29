@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:anatomy_quiz_app/core/utils/activation_service.dart';
-import 'package:anatomy_quiz_app/core/utils/api_service.dart';
+
 import 'package:anatomy_quiz_app/data/models/user_progress.dart';
 
 class OnboardingState {
@@ -49,8 +48,3 @@ class OnboardingNotifier extends StateNotifier<OnboardingState> {
 final onboardingProvider = StateNotifierProvider<OnboardingNotifier, OnboardingState>((ref) {
   return OnboardingNotifier();
 });
-
-// Provider for our activation service
-final activationServiceProvider = Provider((ref) => ActivationService());
-// Add this provider with the others
-final apiServiceProvider = Provider((ref) => ApiService());

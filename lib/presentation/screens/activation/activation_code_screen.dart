@@ -4,8 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:anatomy_quiz_app/presentation/providers/onboarding_provider.dart';
-import 'package:anatomy_quiz_app/presentation/providers/user_progress_provider.dart';
+import 'package:anatomy_quiz_app/presentation/providers/providers.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/activation/activation_code_input.dart';
 import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
 
