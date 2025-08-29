@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anatomy_quiz_app/presentation/providers/onboarding_provider.dart';
 import 'package:anatomy_quiz_app/presentation/providers/user_progress_provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:anatomy_quiz_app/core/constants/app_strings.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -20,57 +23,69 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   }
 
   Future<void> _checkActivationStatus() async {
-    // Wait a bit to show the splash screen
-    await Future.delayed(const Duration(seconds: 2));
+    
+    final activationCheckFuture = _performValidation();
 
+    await Future.wait([
+      Future.delayed(const Duration(seconds: 3)),
+      activationCheckFuture,
+    ]);
+
+    final bool isStillValid = await activationCheckFuture;
+
+    if (mounted) {
+      if (isStillValid) {
+        await ref.read(userProgressProvider.notifier).loadInitialData();
+        if (mounted) context.go('/home');
+      } else {
+        context.go('/welcome');
+      }
+    }
+  }
+
+  Future<bool> _performValidation() async {
     final prefs = await SharedPreferences.getInstance();
     final activationCode = prefs.getString('activationCode');
     final phoneNumber = prefs.getString('phoneNumberForValidation');
-
-    // Get an instance of our activation service from the provider
     final activationService = ref.read(activationServiceProvider);
-
     bool isStillValid = false;
 
-    // First, check if we have the necessary credentials to even attempt a validation
-    if (activationCode != null && activationCode.isNotEmpty && phoneNumber != null && phoneNumber.isNotEmpty) {
-      // --- THIS IS THE NEW LOGIC ---
-      // Re-calculate the expected code based on the device fingerprint and
-      // compare it to the one saved in storage.
+    if (activationCode != null && phoneNumber != null) {
       isStillValid = await activationService.verifyActivationCode(
         phoneNumber: phoneNumber,
         activationCode: activationCode,
       );
     }
 
-    // To ensure a clean state, if validation fails, we should clear the old invalid keys.
     if (!isStillValid) {
       await prefs.remove('activationCode');
       await prefs.remove('phoneNumberForValidation');
     }
-
-    // This is to prevent errors if the user navigates away while we're checking
-    if (!mounted) return; 
-
-    if (isStillValid) {
-      // User is still activated, load their data and go to the main screen
-      await ref.read(userProgressProvider.notifier).loadInitialData();
-      context.go('/home');
-    } else {
-      // User is not activated or validation failed, go to the welcome screen
-      context.go('/welcome');
-    }
+    return isStillValid;
   }
+
+
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 20),
-            Text('جاري التحميل...'),
+            Icon(
+              Icons.science_outlined,
+              size: 100.r,
+              color: Theme.of(context).primaryColor,
+            ).animate().fade(duration: 1500.ms).scale(delay: 500.ms),
+            
+            SizedBox(height: 30.h),
+            
+            Text(
+              AppStrings.loadingMessage,
+              style: TextStyle(fontSize: 18.sp, color: Colors.grey.shade600),
+            )
+            // Animate the text to appear after the logo
+            .animate().fadeIn(delay: 1000.ms),
           ],
         ),
       ),
