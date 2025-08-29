@@ -5,21 +5,18 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:anatomy_quiz_app/core/routing/app_router.dart';
+import 'package:anatomy_quiz_app/core/constants/app_strings.dart';
 
 
 
-
-void main() {
-  // Ensure that widgets are initialized before running the app
-  WidgetsFlutterBinding.ensureInitialized();
+Future<void> main() async {
+  await WidgetsFlutterBinding.ensureInitialized();
   runApp(
-    // ProviderScope is what makes Riverpod work
     const ProviderScope(
       child: MyApp(),
     ),
   );
 }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -32,10 +29,9 @@ class MyApp extends StatelessWidget {
       splitScreenMode: true,
       builder: (context, child) {
         return MaterialApp.router(
-          title: 'اختبر معلوماتك في علم التشريح', // Anatomy Quiz App
+          title: AppStrings.appName,
           debugShowCheckedModeBanner: false,
           
-          // --- Forcing Arabic Language and RTL Layout ---
           locale: const Locale('ar', ''),
           supportedLocales: const [
             Locale('ar', ''),
@@ -51,7 +47,6 @@ class MyApp extends StatelessWidget {
             scaffoldBackgroundColor: AppColors.background,
             colorScheme: ColorScheme.fromSeed(
               seedColor: AppColors.primary,
-              background: AppColors.background,
               surface: AppColors.surface,
             ),
             textTheme: GoogleFonts.cairoTextTheme(Theme.of(context).textTheme).apply(
@@ -71,11 +66,8 @@ class MyApp extends StatelessWidget {
             useMaterial3: true,
           ),
 
-          // --- Navigation ---
           routerConfig: AppRouter.router, 
           
-          // This builder ensures that the entire app is wrapped in a Directionality
-          // widget, forcing RTL layout.
           builder: (context, widget) {
             return Directionality(
               textDirection: TextDirection.rtl,
@@ -88,24 +80,3 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
-// A temporary placeholder screen to make sure the app runs
-class PlaceholderHomeScreen extends StatelessWidget {
-  const PlaceholderHomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('التطبيق قيد الإنشاء'),
-      ),
-      body: Center(
-        child: Text(
-          'أهلاً بك في تطبيق اختبار التشريح!',
-          style: TextStyle(fontSize: 24.sp),
-          textAlign: TextAlign.center,
-        ),
-      ),
-    );
-  }
-}
