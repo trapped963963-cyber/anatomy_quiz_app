@@ -9,8 +9,8 @@ import 'package:anatomy_quiz_app/core/constants/app_strings.dart';
 
 
 
-Future<void> main() async {
-  await WidgetsFlutterBinding.ensureInitialized();
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(
     const ProviderScope(
       child: MyApp(),
@@ -22,9 +22,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ScreenUtilInit is for making the UI responsive
     return ScreenUtilInit(
-      designSize: const Size(375, 812), // iPhone X design size as a baseline
+      designSize: const Size(375, 812),
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
