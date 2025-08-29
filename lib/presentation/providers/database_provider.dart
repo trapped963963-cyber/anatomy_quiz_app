@@ -5,3 +5,7 @@ import 'package:anatomy_quiz_app/data/datasources/database_helper.dart';
 final databaseHelperProvider = Provider<DatabaseHelper>((ref) {
   return DatabaseHelper();
 });
+
+final databaseInitializationProvider = FutureProvider<void>((ref) async {
+  await ref.read(databaseHelperProvider).database;
+});

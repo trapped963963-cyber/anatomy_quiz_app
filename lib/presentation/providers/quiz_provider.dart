@@ -184,10 +184,16 @@ final quizProvider = StateNotifierProvider.autoDispose<QuizNotifier, QuizState>(
   return QuizNotifier(ref);
 });
 
-// A new provider to fetch a single diagram with its labels
 final diagramWithLabelsProvider = FutureProvider.autoDispose.family<AnatomicalDiagram, int>((ref, levelId) async {
   final db = ref.watch(databaseHelperProvider);
-  final diagramData = (await db.getDiagrams()).firstWhere((d) => d.id == levelId);
+
+  // ## THE FIX: Call the new, more efficient method ##
+  final diagramData = await db.getDiagramById(levelId);
+
+  if (diagramData == null) {
+    throw Exception('Diagram with ID $levelId not found.');
+  }
+
   final labels = await db.getLabelsForDiagram(levelId);
   return diagramData.copyWith(labels: labels);
 });

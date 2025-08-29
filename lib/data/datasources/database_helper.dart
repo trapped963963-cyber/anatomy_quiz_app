@@ -3,15 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:anatomy_quiz_app/data/models/models.dart'; // A helper file we'll create
+import 'package:anatomy_quiz_app/data/models/models.dart';
 
 class DatabaseHelper {
-  // Singleton pattern
-  static final DatabaseHelper _instance = DatabaseHelper._internal();
-  factory DatabaseHelper() => _instance;
-  DatabaseHelper._internal();
-
-  static Database? _database;
+  
+  DatabaseHelper();
+  Database? _database;
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -33,7 +30,7 @@ class DatabaseHelper {
         List<int> bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
         await File(path).writeAsBytes(bytes, flush: true);
       } catch (e) {
-        print("Error copying database: $e");
+            throw Exception("Fatal Error: Could not copy the database from assets. $e");
       }
     }
 
@@ -56,13 +53,19 @@ class DatabaseHelper {
 
   // --- Data Fetching Methods ---
 
-  Future<List<AnatomicalDiagram>> getDiagrams() async {
+  Future<AnatomicalDiagram?> getDiagramById(int id) async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('diagrams');
+    final List<Map<String, dynamic>> maps = await db.query(
+      'diagrams',
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1, // We only expect one result
+    );
 
-    return List.generate(maps.length, (i) {
-      return AnatomicalDiagram.fromMap(maps[i]);
-    });
+    if (maps.isNotEmpty) {
+      return AnatomicalDiagram.fromMap(maps.first);
+    }
+    return null; // Return null if no diagram was found
   }
   
   Future<List<Label>> getLabelsForDiagram(int diagramId) async {

@@ -4,10 +4,8 @@ enum Gender { male, female }
 class UserProgress {
   final String? userName;
   final String? gender;
-  // This map is now the single source of truth for all progress.
   final Map<int, LevelStat> levelStats;
 
-  // Initial state when the app is first launched
   const UserProgress.initial()
       : userName = null,
         gender = null,

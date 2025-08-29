@@ -9,7 +9,6 @@ class UserProgressNotifier extends StateNotifier<UserProgress> {
 
   UserProgressNotifier(this._ref) : super(const UserProgress.initial());
 
-  // Method to load the initial user data from device storage
   Future<void> loadInitialData() async {
     final prefs = await SharedPreferences.getInstance();
     final dbHelper = _ref.read(databaseHelperProvider);
@@ -40,12 +39,8 @@ class UserProgressNotifier extends StateNotifier<UserProgress> {
   }
 
 
-   // This method is now much cleaner and more correct.
   Future<void> completeStep(int levelId, int stepNumber) async {
     final dbHelper = _ref.read(databaseHelperProvider);
-
-    // ## NEW, CORRECT "GATEKEEPER" LOGIC ##
-    // Check the progress for THIS SPECIFIC level.
     final currentCompleted = state.levelStats[levelId]?.completedSteps ?? 0;
     // If we are replaying a step we've already completed, do nothing.
     if (stepNumber <= currentCompleted) {
@@ -54,9 +49,7 @@ class UserProgressNotifier extends StateNotifier<UserProgress> {
 
     final totalStepsInLevel = await dbHelper.getLabelsCountForDiagram(levelId);
 
-    // NOTE: We no longer need to save a global "current step/level" to SharedPreferences.
-    // The database is the source of truth.
-
+    
     final newStat = LevelStat(
       levelId: levelId,
       completedSteps: stepNumber,

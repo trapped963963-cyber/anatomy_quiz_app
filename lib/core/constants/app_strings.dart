@@ -9,5 +9,6 @@ class AppStrings {
   
   //splash_screen
   static const String loadingMessage = 'انتظر من فضلك...';
+  static const String unAbleToFindDbMessage = 'حدث خطأما, قد تكون هذه النسخة من التطبيق تالفةيرجى تحميل اخر اصدار من الرابط التالي';
 
 }
