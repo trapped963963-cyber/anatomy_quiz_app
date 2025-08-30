@@ -4,9 +4,13 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:io' show Platform;
+import 'package:anatomy_quiz_app/core/utils/secure_storage_service.dart';
+
 
 class ActivationService {
-  static const String _pepper = "YOUR_SUPER_SECRET_PEPPER_HERE_12345";
+
+  final SecureStorageService _secureStorage;
+  ActivationService(this._secureStorage);
 
   Future<String> _getAppUUID() async {
     final prefs = await SharedPreferences.getInstance();
@@ -45,13 +49,21 @@ class ActivationService {
     required String phoneNumber,
     required String activationCode,
   }) async {
-    final fingerprint = await generateDeviceFingerprint(phoneNumber);
-    final combinedString = '$fingerprint$_pepper';
+    // 1. Fetch the user's unique secret pepper from the secure "safe".
+    final secretPepper = await _secureStorage.getSecretPepper();
+    if (secretPepper == null) {
+      // If no pepper is stored, verification is impossible.
+      return false;
+    }
 
+    // 2. Generate the expected code using the fetched pepper and a fresh fingerprint.
+    final fingerprint = await generateDeviceFingerprint(phoneNumber);
+    final combinedString = '$fingerprint$secretPepper';
     final bytes = utf8.encode(combinedString);
     final digest = sha256.convert(bytes);
-    final finalHash = digest.toString();
-    print(finalHash.substring(0, 12).toUpperCase());
-    return finalHash.substring(0, 12).toUpperCase() == activationCode.toUpperCase();
+    final expectedCode = digest.toString().substring(0, 12).toUpperCase();
+
+    // 3. Compare with the code the user entered (which is saved in SharedPreferences).
+    return expectedCode == activationCode.toUpperCase();
   }
 }
