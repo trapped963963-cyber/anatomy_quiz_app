@@ -13,37 +13,83 @@ class NoInternetException implements Exception {
 
 // A custom exception for when our API server has a problem.
 class ApiException implements Exception {
-  final String message = 'حدث خطأ أثناء الاتصال بالخادم. الرجاء المحاولة مرة أخرى.';
-
+  final String message;
+  ApiException(this.message);
   @override
   String toString() => message;
 }
 
+
 class ApiService {
-  // Replace this with your actual Vercel deployment URL
-  final String _apiUrl =
-      'https://anatomy-api.vercel.app/api/get-contact-info';
+
+  final String _baseUrl = 'https://anatomy-api-v2.vercel.app/';
+  Future<http.Response> _post(String endpoint, Map<String, dynamic> body) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/$endpoint'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      ).timeout(const Duration(seconds: 15));
+      return response;
+    } on SocketException {
+      throw NoInternetException();
+    } on TimeoutException {
+      throw NoInternetException();
+    } catch (e) {
+      throw ApiException('An unexpected error occurred.');
+    }
+  }
+
+  /// 2. Fetches the unique secret pepper for a user during activation.
+  Future<String> getSecretPepper({
+    required String phoneNumber,
+    required String fingerprint,
+  }) async {
+    final response = await _post('activations/get-pepper', {
+      'phone_number': phoneNumber,
+      'device_fingerprint': fingerprint,
+    });
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['secret_pepper'];
+    } else {
+      // Create a more specific error message if the server provides one
+      final errorDetail = json.decode(response.body)['detail'] ?? 'Failed to get activation secret.';
+      throw ApiException(errorDetail);
+    }
+  }
+
+
+// The method now only needs the phone number
+Future<void> pingActivity({required String phoneNumber}) async {
+  try {
+    await _post('users/ping', {'phone_number': phoneNumber});
+  } catch (e) {
+    print('Activity ping failed: $e');
+  }
+}
   Future<String> getContactNumber() async {
     try {
-      final response = await http.get(Uri.parse(_apiUrl))
-          .timeout(const Duration(seconds: 10)); // Add a timeout
+      // Construct the full URL by combining the base URL and the endpoint
+      final response = await http.get(Uri.parse('$_baseUrl/get-contact-info'))
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return data['contact_number'];
       } else {
-        // This is a server-side API problem (e.g., 404, 500).
-        throw ApiException();
+        // ## FIX 2: Add a specific error message ##
+        throw ApiException('Failed to load contact number. Status code: ${response.statusCode}');
       }
     } on SocketException {
-      // This happens when there's no internet.
       throw NoInternetException();
     } on TimeoutException {
-      // This also indicates a network problem.
       throw NoInternetException();
     } catch (e) {
-      // For any other unexpected error, we'll treat it as an API problem.
-      throw ApiException();
+      // If it's not one of our custom exceptions, re-throw it as a generic API exception
+      if (e is ApiException || e is NoInternetException) rethrow;
+      throw ApiException('An unexpected error occurred: $e');
     }
   }
 }

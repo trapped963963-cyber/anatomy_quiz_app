@@ -3,14 +3,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anatomy_quiz_app/presentation/providers/settings_provider.dart';
+import 'package:anatomy_quiz_app/presentation/providers/service_providers.dart';
+
 import 'package:anatomy_quiz_app/presentation/providers/user_progress_provider.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/settings_icon_button.dart';
 import 'package:flutter/services.dart';
-class MainScreen extends ConsumerWidget {
+
+
+
+
+class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends ConsumerState<MainScreen> {
+  
+  @override
+  void initState() {
+    super.initState();
+    ref.read(userActivityServiceProvider).triggerActivityPing();
+  }
+  @override
+  Widget build(BuildContext context) {
     final userProgress = ref.watch(userProgressProvider);
     final settings = ref.watch(settingsProvider);
     final settingsNotifier = ref.read(settingsProvider.notifier);

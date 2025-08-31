@@ -5,12 +5,28 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:io' show Platform;
 import 'package:anatomy_quiz_app/core/utils/secure_storage_service.dart';
-
+import 'package:anatomy_quiz_app/core/utils/api_service.dart';
 
 class ActivationService {
-
+  
+  final ApiService _apiService;
   final SecureStorageService _secureStorage;
-  ActivationService(this._secureStorage);
+
+  ActivationService(this._apiService, this._secureStorage);
+
+    // This is the one-time online activation step.
+  Future<void> fetchAndStorePepper({
+    required String phoneNumber,
+    required String fingerprint,
+  }) async {
+    // Call the API to get the user's unique pepper.
+    final secretPepper = await _apiService.getSecretPepper(
+      phoneNumber: phoneNumber,
+      fingerprint: fingerprint,
+    );
+    // Save it to the device's secure "safe".
+    await _secureStorage.saveSecretPepper(secretPepper);
+  }
 
   Future<String> _getAppUUID() async {
     final prefs = await SharedPreferences.getInstance();
@@ -67,3 +83,4 @@ class ActivationService {
     return expectedCode == activationCode.toUpperCase();
   }
 }
+

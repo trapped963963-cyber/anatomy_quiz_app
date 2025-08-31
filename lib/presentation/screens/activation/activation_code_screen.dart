@@ -33,10 +33,23 @@ class _ActivationCodeScreenState extends ConsumerState<ActivationCodeScreen> {
     final onboardingState = ref.read(onboardingProvider);
     final userNotifier = ref.read(userProgressProvider.notifier);
 
+    try {
+    
+    // 1. First, generate a fresh fingerprint.
+    final fingerprint = await activationService.generateDeviceFingerprint(onboardingState.phoneNumber);
+
+    // 2. ## NEW ## Call the API to fetch and store the secret pepper.
+    await activationService.fetchAndStorePepper(
+      phoneNumber: onboardingState.phoneNumber,
+      fingerprint: fingerprint,
+    );
+
+    // 3. Now, perform the offline verification with the pepper we just stored.
     final isValid = await activationService.verifyActivationCode(
       phoneNumber: onboardingState.phoneNumber,
       activationCode: _activationCode,
     );
+
 
     if (isValid) {
       final prefs = await SharedPreferences.getInstance();
@@ -54,6 +67,12 @@ class _ActivationCodeScreenState extends ConsumerState<ActivationCodeScreen> {
         _isLoading = false;
       });
     }
+  } catch(e) {
+       setState(() {
+      _errorText = 'فشل استرداد بيانات التفعيل. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.';
+      _isLoading = false;
+    });
+  }
   }
 
   @override
