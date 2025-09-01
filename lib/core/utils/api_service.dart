@@ -22,7 +22,7 @@ class ApiException implements Exception {
 
 class ApiService {
 
-  final String _baseUrl = 'https://anatomy-api-v2.vercel.app/';
+  final String _baseUrl = 'https://anatomy-api-v2.vercel.app/api';
   Future<http.Response> _post(String endpoint, Map<String, dynamic> body) async {
     try {
       final response = await http.post(
@@ -61,14 +61,14 @@ class ApiService {
   }
 
 
-// The method now only needs the phone number
-Future<void> pingActivity({required String phoneNumber}) async {
-  try {
-    await _post('users/ping', {'phone_number': phoneNumber});
-  } catch (e) {
-    print('Activity ping failed: $e');
+  // The method now only needs the phone number
+  Future<void> pingActivity({required String phoneNumber}) async {
+    try {
+      await _post('users/ping', {'phone_number': phoneNumber});
+    } catch (e) {
+      print('Activity ping failed: $e');
+    }
   }
-}
   Future<String> getContactNumber() async {
     try {
       // Construct the full URL by combining the base URL and the endpoint

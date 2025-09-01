@@ -3,14 +3,17 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:anatomy_quiz_app/data/models/models.dart';
 import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:anatomy_quiz_app/presentation/providers/user_progress_provider.dart'; // <-- ADD THIS IMPORT
 
-class DiagramCard extends StatelessWidget {
+
+class DiagramCard extends ConsumerWidget {
   final DiagramWithProgress diagramWithProgress;
 
   const DiagramCard({super.key, required this.diagramWithProgress});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final diagram = diagramWithProgress.diagram;
     final progress = diagramWithProgress.progress;
     
@@ -60,14 +63,11 @@ class DiagramCard extends StatelessWidget {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // -- Left Side: Progress Indicator or Completed Badge --
                 Align(
                   alignment: Alignment.centerLeft,
                   child: isCompleted
-                      // ## FIX 3: Simplified "Completed" Badge ##
                       ? Icon(Icons.check_circle, color: AppColors.correct, size: 30.r)
                       : SizedBox(
-                          // ## FIX 2: Larger Progress Indicator ##
                           width: 50.r,
                           height: 50.r,
                           child: Stack(
@@ -96,7 +96,11 @@ class DiagramCard extends StatelessWidget {
                 Align(
                   alignment: Alignment.center,
                   child: ElevatedButton(
-                    onPressed: () => context.push('/level/${diagram.id}'),
+                    onPressed: () {
+                      ref.read(userProgressProvider.notifier).setLastActiveLevel(diagram.id, diagram.title);
+                      print(diagram.title);
+                      context.push('/level/${diagram.id}');
+                    }, 
                     style: ElevatedButton.styleFrom(
                       shape: const CircleBorder(),
                       padding: EdgeInsets.all(12.r),
@@ -104,7 +108,6 @@ class DiagramCard extends StatelessWidget {
                       foregroundColor: Colors.white,
                     ),
                     child: Icon(
-                      // ## FIX 1: Rotated "Play" Icon for RTL ##
                       isCompleted ? Icons.replay : Icons.arrow_forward,
                     ),
                   ),

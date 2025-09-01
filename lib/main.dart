@@ -11,6 +11,7 @@ import 'package:anatomy_quiz_app/core/constants/app_strings.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  GoogleFonts.config.allowRuntimeFetching = false;
   runApp(
     const ProviderScope(
       child: MyApp(),
@@ -78,4 +79,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-

@@ -8,8 +8,7 @@ import 'package:anatomy_quiz_app/presentation/providers/service_providers.dart';
 import 'package:anatomy_quiz_app/presentation/providers/user_progress_provider.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/settings_icon_button.dart';
 import 'package:flutter/services.dart';
-
-
+import 'dart:math'; // Add this import at the top of your file for 'pi'
 
 
 class MainScreen extends ConsumerStatefulWidget {
@@ -73,30 +72,18 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                   ],
                 ),
                 SizedBox(height: 60.h),
-                _buildMainButton(
-                  context,
-                  title: 'متابعة التعلم',
-                  subtitle: 'المستوى',
-                  icon: Icons.play_arrow,
-                  onTap: () {
-                    // We will build this screen next
-                    // context.go('/step/${userProgress.currentLevelId}/${userProgress.currentStepInLevel}');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('شاشة الاختبار قيد الإنشاء!'))
-                    );
-                  },
-                ),
+                _buildMainButton(context,ref),
                 SizedBox(height: 20.h),
                 _buildSecondaryButton(
                   context,
-                  title: 'مسار التعلم',
+                  title: 'يلا ندرس!',
                   icon: Icons.map,
                   onTap: () => context.push('/units'),
                 ),
                 SizedBox(height: 10.h),
                 _buildSecondaryButton(
                   context,
-                  title: 'اختبار عام',
+                  title: 'جاهز للاختبار؟!',
                   icon: Icons.quiz,
                   onTap: () => context.push('/quiz/select-content'),
                 ),
@@ -108,12 +95,22 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     );
   }
 
-  Widget _buildMainButton(BuildContext context, {required String title, required String subtitle, required IconData icon, required VoidCallback onTap}) {
+  Widget _buildMainButton(BuildContext context, WidgetRef ref) {
+    final userProgress = ref.watch(userProgressProvider);
+    final lastActiveLevelId = userProgress.lastActiveLevelId;
+    final lastActiveLevelTitle = userProgress.lastActiveLevelTitle ?? 'ابدأ رحلتك';
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          context.push('/level/$lastActiveLevelId');
+          print(userProgress.lastActiveLevelTitle);
+          
+          print(lastActiveLevelTitle);
+
+        },
         borderRadius: BorderRadius.circular(16.r),
         child: Container(
           padding: EdgeInsets.all(24.w),
@@ -125,14 +122,21 @@ class _MainScreenState extends ConsumerState<MainScreen> {
               end: Alignment.bottomLeft,
             ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween, // Pushes items to opposite ends
+            crossAxisAlignment: CrossAxisAlignment.center, // Vertically aligns items in the middle
             children: [
-              Icon(icon, color: Colors.white, size: 40.sp),
-              SizedBox(height: 10.h),
-              Text(title, style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold, color: Colors.white)),
-              Text(subtitle, style: TextStyle(fontSize: 16.sp, color: Colors.white70)),
-            ],
+              // This Column holds the two text widgets
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('متابعة التعلم', style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+                  Text(lastActiveLevelTitle, style: TextStyle(fontSize: 16.sp, color: Colors.white70)),
+                ],
+              ),
+              // The icon is now a direct child of the Row
+              Icon(Icons.send, color: Colors.white, size: 40.sp),
+              ],
           ),
         ),
       ),

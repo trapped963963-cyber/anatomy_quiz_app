@@ -165,7 +165,7 @@ class _McqQuestionViewState extends ConsumerState<McqQuestionView> {
                       ? choice.title
                       : choice.labelNumber.toString(),
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
+                  style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w600),
                 ),
               );
 
@@ -198,7 +198,7 @@ class _McqQuestionViewState extends ConsumerState<McqQuestionView> {
         : null, 
           child: Text(
             widget.mode == QuestionMode.test ? 'التالي' : (_isAnswered ? 'التالي' : 'تحقق'),
-            style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
           ),
         ),
       ],

@@ -15,13 +15,26 @@ class UserProgressNotifier extends StateNotifier<UserProgress> {
     
     final userName = prefs.getString('userName');
     final genderString = prefs.getString('userGender');
+    final lastActiveLevelId = prefs.getInt('lastActiveLevelId') ?? 1;
+    final lastActiveLevelTitle = prefs.getString('lastActiveLevelTitle');
     final levelStats = await dbHelper.getAllLevelStats();
 
     state = UserProgress(
       userName: userName,
       gender: genderString,
       levelStats: levelStats,
+      lastActiveLevelId: lastActiveLevelId,
+      lastActiveLevelTitle: lastActiveLevelTitle,
+
     );
+  }
+
+  Future<void> setLastActiveLevel(int levelId,  String title) async {
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('lastActiveLevelId', levelId);
+    await prefs.setString('lastActiveLevelTitle', title);
+    state = state.copyWith(lastActiveLevelId: levelId,lastActiveLevelTitle: title);
   }
 
   // Method to save user's name

@@ -184,7 +184,7 @@ class _WordGameViewState extends ConsumerState<WordGameView> {
                         child: Text(
                           currentChar, 
                           style: TextStyle(
-                            fontSize: 20.sp, fontWeight: FontWeight.bold,
+                            fontSize: 15.sp, fontWeight: FontWeight.bold,
                             color: _isAnswered ? Colors.white : AppColors.textPrimary,
                           ),
                         )
@@ -232,7 +232,7 @@ class _WordGameViewState extends ConsumerState<WordGameView> {
                         child: Text(
                           letter,
                           style: TextStyle(
-                            fontSize: 20.sp,
+                            fontSize: 15.sp,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
                           ),
@@ -304,7 +304,7 @@ class _WordGameViewState extends ConsumerState<WordGameView> {
             : null, // Otherwise, the button is disabled.
             child: Text(
               widget.mode == QuestionMode.test ? 'التالي' : (_isAnswered ? 'التالي' : 'تحقق'),
-              style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
             ),
           ),
         ],

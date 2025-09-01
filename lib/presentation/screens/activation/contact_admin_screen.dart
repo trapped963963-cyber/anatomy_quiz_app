@@ -35,12 +35,6 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
   }
 
   Future<void> _fetchContactDetails() async {
-  if (!_isLoading) {
-    setState(() {
-      _isLoading = true;
-      _lastError = null;
-    });
-  }
 
   try {
     final apiService = ref.read(apiServiceProvider);
@@ -92,7 +86,7 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('تم إرسال تقرير بالمشكلة تلقائياً للمسؤول.'),
+            content: Text('تم إرسال تقرير بالمشكلة لفريق الدعم.'),
             duration: Duration(seconds: 4),
           ),
         );
@@ -100,6 +94,18 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
     }
   }
 }
+
+
+  // ## NEW: A dedicated method for the "Try Again" button ##
+  void _retryFetch() {
+    setState(() {
+      _isLoading = true;
+      _lastError = null;
+    });
+    // Call the original fetch method to re-run the API call
+    _fetchContactDetails();
+  }
+
   Future<void> _launchUrl(Uri url) async {
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       if (mounted) {
@@ -110,7 +116,7 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
     }
   }
   
-  void _reportProblemToAdmin() {
+  void _reportProblemToAdmin() async {
     final onboardingState = ref.read(onboardingProvider);
     final activationService = ref.read(activationServiceProvider);
     final genderString = onboardingState.gender == Gender.male ? 'ذكر' : 'أنثى';
@@ -123,9 +129,9 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
     if (onboardingState.promoCode != null && onboardingState.promoCode!.isNotEmpty) {
       activationMessage += '\nالرمز الترويجي: ${onboardingState.promoCode}';
     }
-    // Note: We generate the fingerprint again here in case the initial fetch failed.
-    activationMessage += '\nرمز الجهاز: ${activationService.generateDeviceFingerprint(onboardingState.phoneNumber)}';
-    
+    final fingerprint = await activationService.generateDeviceFingerprint(onboardingState.phoneNumber);
+    activationMessage += '\nرمز الجهاز: $fingerprint';
+
     final reportMessage = "--- User Report ---\nError: $_lastError\n\n--- Original Request ---\n$activationMessage";
     final reportUrl = 'https://wa.me/$_backupContactNumber?text=${Uri.encodeComponent(reportMessage)}';
     _launchUrl(Uri.parse(reportUrl));
@@ -244,7 +250,7 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
       children: [
         Text(_lastError ?? 'An unknown error occurred.', textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 16.sp)),
         SizedBox(height: 20.h),
-        ElevatedButton(onPressed: _fetchContactDetails, child: const Text('حاول مرة أخرى')),
+        ElevatedButton(onPressed: _retryFetch, child: const Text('حاول مرة أخرى')),
         if (_apiFailedAttempts >= 2)
           Padding(
             padding: EdgeInsets.only(top: 8.h),

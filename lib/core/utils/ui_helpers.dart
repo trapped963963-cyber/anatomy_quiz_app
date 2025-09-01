@@ -45,7 +45,7 @@ Future<bool?> showFeedbackBottomSheet({
             children: [
               Text(
                 message,
-                style: TextStyle(fontSize: 32.sp, color: Colors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 20.sp, color: Colors.white, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 12.h),
               if (!isCorrect)
@@ -53,7 +53,7 @@ Future<bool?> showFeedbackBottomSheet({
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: AutoSizeText(
                     'الإجابة الصحيحة: $correctAnswerText',
-                    style: TextStyle(fontSize: 25.sp, color: Colors.white70),
+                    style: TextStyle(fontSize: 15.sp, color: Colors.white70),
                     textAlign: TextAlign.center,
                     maxLines: 3,
                     minFontSize: 14,
@@ -147,8 +147,8 @@ Widget buildQuestionContainer({
     children: [
       Container(
         width: double.infinity,
-        constraints: BoxConstraints(minHeight: 60.h, maxHeight: 80.h),
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 5.h),
+        constraints: BoxConstraints(minHeight: 60.h, maxHeight: 70.h),
+        padding: EdgeInsets.symmetric(vertical: 5.h,horizontal: 10.w),
         decoration: BoxDecoration(
           color: Colors.grey.shade100,
           borderRadius: BorderRadius.circular(8.r),
@@ -157,8 +157,8 @@ Widget buildQuestionContainer({
           child: AutoSizeText(
             text,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 19.sp, fontWeight: FontWeight.bold),
-            minFontSize: 14,
+            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+            minFontSize: 10,
             maxLines: 4,
             overflow: TextOverflow.ellipsis,
           ),
@@ -166,11 +166,12 @@ Widget buildQuestionContainer({
       ),
       Positioned(
         top: 0,
-        left: -1.w,
+        left: -5.w,
         child: IconButton(
           icon: const Icon(Icons.zoom_out_map, color: AppColors.textSecondary),
           onPressed: () => showFullQuestionText(context, text),
           tooltip: 'عرض النص الكامل',
+          iconSize: 20.r,
         ),
       ),
     ],
