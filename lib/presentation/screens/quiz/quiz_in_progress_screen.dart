@@ -46,19 +46,33 @@ class _QuizInProgressScreenState extends ConsumerState<QuizInProgressScreen> wit
         });
       } else {
         // If time runs out, end the quiz
-        _endQuiz();
+        _endQuiz(isTimeUp: true);
       }
     });
   }
 
-  void _endQuiz() {
-    _timer?.cancel(); // Stop the timer
-    final questions = ref.read(customQuizQuestionsProvider).asData!.value;
+    void _endQuiz({bool isTimeUp = false}) {
+    _timer?.cancel();
+    final questions = ref.read(customQuizQuestionsProvider).asData?.value ?? [];
+    List<Question> finalIncorrectAnswers = List.from(_incorrectAnswers);
+
+    if (isTimeUp) {
+        final unansweredQuestions = questions.sublist(_currentQuestionIndex);
+        finalIncorrectAnswers.addAll(unansweredQuestions);
+    }
+
+    // Set the results for the score calculation
     ref.read(quizResultProvider.notifier).setResults(
-          allQuestions: questions,
-          incorrectAnswers: _incorrectAnswers,
-        );
-    if(mounted) context.pushReplacement('/quiz/end');
+      allQuestions: questions,
+      // Pass the full list of incorrect + unanswered for an accurate score
+      incorrectAnswers: finalIncorrectAnswers,
+      // Crucially, pass ONLY the questions the user actively got wrong for the review
+      reviewableIncorrectAnswers: _incorrectAnswers,
+      endReason: isTimeUp ? QuizEndReason.timeUp : QuizEndReason.completed,
+
+    );
+
+    if (mounted) context.pushReplacement('/quiz/end');
   }
   void _showExitConfirmationDialog() {
     _timer?.cancel(); // Pause the timer when the dialog is open

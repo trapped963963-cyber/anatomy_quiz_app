@@ -8,6 +8,9 @@ class QuizResultNotifier extends StateNotifier<QuizResult> {
   void setResults({
     required List<Question> allQuestions,
     required List<Question> incorrectAnswers,
+    required List<Question> reviewableIncorrectAnswers,
+    required QuizEndReason endReason,
+    
   }) {
     // ## THE FIX: We now compare the question objects directly. ##
 
@@ -23,6 +26,9 @@ class QuizResultNotifier extends StateNotifier<QuizResult> {
       correctAnswers: correctAnswers,
       incorrectAnswers: incorrectAnswers,
       totalQuestions: allQuestions.length,
+      reviewableIncorrectAnswers: reviewableIncorrectAnswers,
+      endReason: endReason,
+
     );
   }
 }

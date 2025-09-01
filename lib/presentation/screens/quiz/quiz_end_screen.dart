@@ -6,6 +6,7 @@ import 'package:anatomy_quiz_app/presentation/providers/quiz_result_provider.dar
 import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:anatomy_quiz_app/presentation/providers/custom_quiz_provider.dart';
+import 'package:anatomy_quiz_app/data/models/models.dart';
 
 class QuizEndScreen extends ConsumerWidget {
   const QuizEndScreen({super.key});
@@ -43,9 +44,21 @@ class QuizEndScreen extends ConsumerWidget {
     final score = results.correctAnswers.length;
     final total = results.totalQuestions;
     final percentage = total > 0 ? score / total : 0.0;
-    final message = _getFeedbackMessage(percentage);
-    final hasIncorrectAnswers = results.incorrectAnswers.isNotEmpty;
+    final hasIncorrectAnswers = results.reviewableIncorrectAnswers.isNotEmpty; 
     final progressGradient = _getProgressGradient(percentage);
+
+    String feedbackMessage;
+    if (results.endReason == QuizEndReason.timeUp) {
+      final questionsLeft = total - (score + results.incorrectAnswers.where((q) => !results.incorrectAnswers.contains(q)).length);
+      
+      if(questionsLeft==1){feedbackMessage = 'انتهى الوقت! تبقى لديك سؤال واحد';}
+      else if(questionsLeft==2){feedbackMessage = 'انتهى الوقت! تبقى لديك سؤالين';}
+      else{feedbackMessage = 'انتهى الوقت! تبقى لديك $questionsLeft أسئلة , حاول أن تكون أسرع في المرات القادمة.';}
+    } else {
+      feedbackMessage = _getFeedbackMessage(percentage);
+    }
+
+
 
     return Scaffold(
       appBar: AppBar(
@@ -80,7 +93,7 @@ class QuizEndScreen extends ConsumerWidget {
               SizedBox(height: 30.h),
               // Feedback Message
               Text(
-                message,
+                feedbackMessage,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.w600),
               ),
@@ -89,8 +102,7 @@ class QuizEndScreen extends ConsumerWidget {
               if (hasIncorrectAnswers)
                 ElevatedButton(
                   onPressed: () {
-                    // Pass the list of incorrect answers to the review screen
-                    context.push('/quiz/review', extra: results.incorrectAnswers);
+                    context.push('/quiz/review', extra: results.reviewableIncorrectAnswers);
                   },
                   child: const Text('بدء المراجعة'),
                 ),

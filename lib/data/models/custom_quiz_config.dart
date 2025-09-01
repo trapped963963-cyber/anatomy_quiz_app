@@ -15,21 +15,21 @@ class CustomQuizConfig {
   // We can add getters to easily access the quiz parameters.
   int get questionCount {
     switch (difficulty) {
-      case QuizDifficulty.veryEasy: return 5;
-      case QuizDifficulty.easy: return 15;
-      case QuizDifficulty.medium: return 25;
+      case QuizDifficulty.veryEasy: return 10;
+      case QuizDifficulty.easy: return 20;
+      case QuizDifficulty.medium: return 30;
       case QuizDifficulty.difficult: return 40;
-      case QuizDifficulty.veryDifficult: return 50;
+      case QuizDifficulty.veryDifficult: return 60;
     }
   }
 
   int get timeInMinutes {
      switch (difficulty) {
-      case QuizDifficulty.veryEasy: return 10;
-      case QuizDifficulty.easy: return 20;
-      case QuizDifficulty.medium: return 30;
-      case QuizDifficulty.difficult: return 40;
-      case QuizDifficulty.veryDifficult: return 50;
+      case QuizDifficulty.veryEasy: return 1;
+      case QuizDifficulty.easy: return 10;
+      case QuizDifficulty.medium: return 15;
+      case QuizDifficulty.difficult: return 20;
+      case QuizDifficulty.veryDifficult: return 30;
     }
   }
 

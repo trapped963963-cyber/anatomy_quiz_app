@@ -122,19 +122,39 @@ class _QuizContentSelectionScreenState extends ConsumerState<QuizContentSelectio
                 Expanded(
                   child: Text(unit.title, style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold)),
                 ),
-                Text('تحديد الكل', style: TextStyle(fontSize: 14.sp, color: Colors.grey.shade600)),
-                Checkbox(
-                  value: isAllSelected,
-                  onChanged: (value) {
-                    setState(() {
-                      if (value == true) {
-                        _selectedDiagramIds.addAll(diagramIdsInUnit);
-                      } else {
-                        _selectedDiagramIds.removeAll(diagramIdsInUnit);
-                      }
-                    });
-                  },
-                ),
+                  GestureDetector(
+                    // This onTap performs the same logic as the Checkbox
+                    onTap: () {
+                      setState(() {
+                        // We manually toggle the state
+                        if (isAllSelected) {
+                          _selectedDiagramIds.removeAll(diagramIdsInUnit);
+                        } else {
+                          _selectedDiagramIds.addAll(diagramIdsInUnit);
+                        }
+                      });
+                    },
+                    // Use a Row to group the text and checkbox visually
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min, // Prevents the Row from taking extra space
+                      children: [
+                        Text('تحديد الكل', style: TextStyle(fontSize: 14.sp, color: Colors.grey.shade600)),
+                        // The Checkbox's onChanged is now simpler, as the main logic is in the GestureDetector
+                        Checkbox(
+                          value: isAllSelected,
+                          onChanged: (value) {
+                            setState(() {
+                              if (value == true) {
+                                _selectedDiagramIds.addAll(diagramIdsInUnit);
+                              } else {
+                                _selectedDiagramIds.removeAll(diagramIdsInUnit);
+                              }
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
             children: diagramsWithProgress.map((dwp) {
@@ -155,7 +175,6 @@ class _QuizContentSelectionScreenState extends ConsumerState<QuizContentSelectio
                   });
                 },
                 activeColor: AppColors.primary,
-                // ## REMOVED the confusing secondary icon ##
               );
             }).toList(),
           ),
@@ -164,3 +183,4 @@ class _QuizContentSelectionScreenState extends ConsumerState<QuizContentSelectio
     );
   }
 }
+
