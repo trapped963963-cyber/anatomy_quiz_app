@@ -7,11 +7,14 @@ import 'package:anatomy_quiz_app/presentation/providers/providers.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:anatomy_quiz_app/core/constants/app_strings.dart';
+import 'package:anatomy_quiz_app/core/utils/sound_service.dart';
 
 class SplashScreen extends ConsumerWidget {
   const SplashScreen({super.key});
 
   Future<void> _checkActivationAndNavigate(BuildContext context, WidgetRef ref) async {
+    ref.read(soundServiceProvider).preloadSounds();
+
     final prefs = await SharedPreferences.getInstance();
     final activationCode = prefs.getString('activationCode');
     final phoneNumber = prefs.getString('phoneNumberForValidation');

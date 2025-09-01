@@ -46,11 +46,11 @@ class QuizEndScreen extends ConsumerWidget {
     final percentage = total > 0 ? score / total : 0.0;
     final hasIncorrectAnswers = results.reviewableIncorrectAnswers.isNotEmpty; 
     final progressGradient = _getProgressGradient(percentage);
-
+    final answeredQuestions = results.correctAnswers.length + results.reviewableIncorrectAnswers.length;
+    final questionsLeft = total - answeredQuestions;      
+     
     String feedbackMessage;
     if (results.endReason == QuizEndReason.timeUp) {
-      final questionsLeft = total - (score + results.incorrectAnswers.where((q) => !results.incorrectAnswers.contains(q)).length);
-      
       if(questionsLeft==1){feedbackMessage = 'انتهى الوقت! تبقى لديك سؤال واحد';}
       else if(questionsLeft==2){feedbackMessage = 'انتهى الوقت! تبقى لديك سؤالين';}
       else{feedbackMessage = 'انتهى الوقت! تبقى لديك $questionsLeft أسئلة , حاول أن تكون أسرع في المرات القادمة.';}

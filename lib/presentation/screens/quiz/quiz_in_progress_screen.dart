@@ -9,6 +9,10 @@ import 'package:anatomy_quiz_app/presentation/providers/quiz_result_provider.dar
 import 'package:anatomy_quiz_app/presentation/widgets/quiz/diagram_widget.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/quiz/question_widget.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:anatomy_quiz_app/presentation/widgets/quiz/animated_countdown_text.dart';
+import 'package:anatomy_quiz_app/presentation/providers/settings_provider.dart';
+
+
 
 class QuizInProgressScreen extends ConsumerStatefulWidget {
   const QuizInProgressScreen({super.key});
@@ -163,15 +167,27 @@ class _QuizInProgressScreenState extends ConsumerState<QuizInProgressScreen> wit
         }
       },
       child: Scaffold(
-       appBar: AppBar(
-          title: const Text('اختبار مخصص'),
-          actions: [
+       appBar: AppBar(  
+        title: questionsAsync.when(
+          // While loading or if there's an error, show a simple title.
+          loading: () => const Text('اختبار مخصص'),
+          error: (e, st) => const Text('اختبار مخصص'),
+          // Only when we have the data, we build the dynamic title.
+          data: (questions) => Text(
+            'سؤال ${_currentQuestionIndex + 1} / ${questions.length}'
+          ),
+        ),          
+        actions: [
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: Center(
-                child: Text(
-                  _formatTime(_timeLeftInSeconds),
-                  style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+                // Replace the old Text widget with our new animated one
+                child: AnimatedCountdownText(
+                  // Get the total time from the config for the color calculation
+                  totalSeconds: ref.read(customQuizConfigProvider).timeInMinutes * 60,
+                  // Pass the current time left from our state
+                  remainingSeconds: _timeLeftInSeconds,
+                  hapticsEnabled: ref.watch(settingsProvider)['haptics'] ?? true,
                 ),
               ),
             ),
