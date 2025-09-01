@@ -16,6 +16,7 @@ class Question {
   final Label correctLabel;
   final String questionText;
   final List<Label> choices;
+  final int? randomIndex;
 
   Question({
     required this.questionType,
@@ -23,5 +24,6 @@ class Question {
     required this.correctLabel,
     required this.questionText,
     required this.choices,
+    this.randomIndex,
   });
 }

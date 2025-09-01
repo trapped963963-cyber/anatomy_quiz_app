@@ -76,7 +76,8 @@ class _WordGameViewState extends ConsumerState<WordGameView> {
       String toreplace;
 
       if (fittableWordIndexes.isNotEmpty) {
-        chosenIndex = (fittableWordIndexes..shuffle()).first;
+        final int deterministicIndex = widget.question.randomIndex! % fittableWordIndexes.length;
+        chosenIndex = fittableWordIndexes[deterministicIndex];
         wordToGuess = words[chosenIndex];
         toreplace = '-' * wordToGuess.length;
       } else {

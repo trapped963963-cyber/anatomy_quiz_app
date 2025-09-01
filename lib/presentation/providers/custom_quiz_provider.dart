@@ -126,6 +126,7 @@ final customQuizQuestionsProvider = FutureProvider.autoDispose<List<Question>>((
           correctLabel: currentLabel,
           questionText: questionText,
           choices: choices,
+          randomIndex: Random().nextInt(100),
         ));
         
         break; // Found a unique question, move to the next in the while loop.

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:anatomy_quiz_app/data/models/models.dart';
 import 'package:anatomy_quiz_app/presentation/providers/database_provider.dart';
-
+import 'dart:math';
 // This class will hold the state of a single quiz session
 class QuizState {
   final List<Question> questions;
@@ -127,6 +127,7 @@ class QuizNotifier extends StateNotifier<QuizState> {
       correctLabel: newLabel,
       questionText: 'اكتب اسم الجزء رقم ${newLabel.labelNumber}',
       choices: [],
+      randomIndex: Random().nextInt(100),
     ),
   ];
 
@@ -170,6 +171,7 @@ class QuizNotifier extends StateNotifier<QuizState> {
             correctLabel: label,
             questionText: 'اكتب اسم الجزء رقم ${label.labelNumber}',
             choices: [],
+            randomIndex: Random().nextInt(100),
           ));
         } else {
           questions.add(_createMcq(label, allLearnedLabels, type, diagramId));
