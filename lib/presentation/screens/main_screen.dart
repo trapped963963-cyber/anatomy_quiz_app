@@ -8,7 +8,6 @@ import 'package:anatomy_quiz_app/presentation/providers/service_providers.dart';
 import 'package:anatomy_quiz_app/presentation/providers/user_progress_provider.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/settings_icon_button.dart';
 import 'package:flutter/services.dart';
-import 'dart:math'; // Add this import at the top of your file for 'pi'
 
 
 class MainScreen extends ConsumerStatefulWidget {

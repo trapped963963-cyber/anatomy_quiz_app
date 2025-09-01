@@ -49,7 +49,8 @@ class MyApp extends StatelessWidget {
               seedColor: AppColors.primary,
               surface: AppColors.surface,
             ),
-            textTheme: GoogleFonts.cairoTextTheme(Theme.of(context).textTheme).apply(
+            fontFamily: 'Cairo',
+            textTheme: Theme.of(context).textTheme.apply(
               bodyColor: AppColors.textPrimary,
               displayColor: AppColors.textPrimary,
             ),

@@ -51,70 +51,79 @@ class _NameInputScreenState extends ConsumerState<NameInputScreen> {
         padding: EdgeInsets.all(24.w),
         child: Form(
           key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text('ما هو اسمك؟', style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-              SizedBox(height: 30.h),
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'الاسم', border: OutlineInputBorder()),
-                validator: (value) {
-                  if (value == null || value.trim().length < 2) return 'الرجاء إدخال اسم لا يقل عن حرفين';
-                  if (value.contains(RegExp(r'[0-9]'))) return 'لا يمكن أن يحتوي الاسم على أرقام';
-                  return null;
-                },
-              ),
-              SizedBox(height: 30.h),
-              Text('أنا:', style: TextStyle(fontSize: 18.sp), textAlign: TextAlign.center),
-              SizedBox(height: 10.h),
-
-              // ## NEW: Gender Selection UI ##
-              SegmentedButton<Gender>(
-                // We are moving the segments definition inside the build method
-                // so it can react to state changes.
-                segments: <ButtonSegment<Gender>>[
-                  ButtonSegment<Gender>(
-                    value: Gender.male,
-                    label: const Text('ذكر'),
-                    // ## NEW: Add an icon that changes based on selection ##
-                    icon: Icon(
-                          Icons.man_sharp,       // The default icon
-                    ),
+          child: LayoutBuilder(builder: (context, constraints){
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
                   ),
-                  ButtonSegment<Gender>(
-                    value: Gender.female,
-                    label: const Text('أنثى'),
-                    // ## NEW: Add an icon that changes based on selection ##
-                    icon: Icon(
-                           Icons.woman_sharp,     // The default icon
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('ما هو اسمك؟', style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                    SizedBox(height: 30.h),
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(labelText: 'الاسم', border: OutlineInputBorder()),
+                      validator: (value) {
+                        if (value == null || value.trim().length < 2) return 'الرجاء إدخال اسم لا يقل عن حرفين';
+                        if (value.contains(RegExp(r'[0-9]'))) return 'لا يمكن أن يحتوي الاسم على أرقام';
+                        return null;
+                      },
                     ),
-                  ),
-                ],
-                selected: _selectedGender != null ? {_selectedGender!} : {},
-                onSelectionChanged: (Set<Gender> newSelection) {
-                  setState(() {
-                    if (newSelection.isNotEmpty) {
-                      _selectedGender = newSelection.first;
-                    } else {
-                      _selectedGender = null;
-                    }
-                  });
-                },
-                emptySelectionAllowed: true,
-                showSelectedIcon: false,
-
+                    SizedBox(height: 30.h),
+                    Text('أنا:', style: TextStyle(fontSize: 18.sp), textAlign: TextAlign.center),
+                    SizedBox(height: 10.h),
+                
+                    // ## NEW: Gender Selection UI ##
+                    SegmentedButton<Gender>(
+                      // We are moving the segments definition inside the build method
+                      // so it can react to state changes.
+                      segments: <ButtonSegment<Gender>>[
+                        ButtonSegment<Gender>(
+                          value: Gender.male,
+                          label: const Text('ذكر'),
+                          // ## NEW: Add an icon that changes based on selection ##
+                          icon: Icon(
+                                Icons.man_sharp,       // The default icon
+                          ),
+                        ),
+                        ButtonSegment<Gender>(
+                          value: Gender.female,
+                          label: const Text('أنثى'),
+                          // ## NEW: Add an icon that changes based on selection ##
+                          icon: Icon(
+                                 Icons.woman_sharp,     // The default icon
+                          ),
+                        ),
+                      ],
+                      selected: _selectedGender != null ? {_selectedGender!} : {},
+                      onSelectionChanged: (Set<Gender> newSelection) {
+                        setState(() {
+                          if (newSelection.isNotEmpty) {
+                            _selectedGender = newSelection.first;
+                          } else {
+                            _selectedGender = null;
+                          }
+                        });
+                      },
+                      emptySelectionAllowed: true,
+                      showSelectedIcon: false,
+                
+                    ),
+                
+                    SizedBox(height: 30.h),
+                    ElevatedButton(
+                      // Button is disabled until both fields are valid
+                      onPressed: (_nameController.text.isNotEmpty && _selectedGender != null) ? _onNext : null,
+                      child: const Text('التالي'),
+                    ),
+                    TextButton(onPressed: () => context.pop(), child: const Text('رجوع')),
+                  ],
+                ),
               ),
-
-              SizedBox(height: 30.h),
-              ElevatedButton(
-                // Button is disabled until both fields are valid
-                onPressed: (_nameController.text.isNotEmpty && _selectedGender != null) ? _onNext : null,
-                child: const Text('التالي'),
-              ),
-              TextButton(onPressed: () => context.pop(), child: const Text('رجوع')),
-            ],
+            );}
           ),
         ),
       ),

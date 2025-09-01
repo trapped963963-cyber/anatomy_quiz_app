@@ -27,6 +27,8 @@ class _QuizInProgressScreenState extends ConsumerState<QuizInProgressScreen> wit
 
   Timer? _timer;
   int _timeLeftInSeconds = 0;
+  bool _isTimerInitialized = false;
+
 
   @override
   void initState() {
@@ -35,27 +37,31 @@ class _QuizInProgressScreenState extends ConsumerState<QuizInProgressScreen> wit
     WidgetsBinding.instance.addObserver(this);
   }
 
-  void _startTimer() {
-    // Get the initial time from the quiz config
-    final totalTime = ref.read(customQuizConfigProvider).timeInMinutes * 60;
-    setState(() {
-      _timeLeftInSeconds = totalTime;
-    });
+  void _startOrResumeTimer() {
+    _timer?.cancel(); // Stop any existing timer
 
-    // Start a periodic timer that fires every second
+    // If the timer hasn't been started yet, initialize it from the config.
+    if (!_isTimerInitialized) {
+      final totalTime = ref.read(customQuizConfigProvider).timeInMinutes * 60;
+      _timeLeftInSeconds = totalTime;
+      _isTimerInitialized = true;
+    }
+
+    // Start a new periodic timer that uses the current _timeLeftInSeconds
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_timeLeftInSeconds > 0) {
-        setState(() {
-          _timeLeftInSeconds--;
-        });
+        if (mounted) {
+          setState(() {
+            _timeLeftInSeconds--;
+          });
+        }
       } else {
-        // If time runs out, end the quiz
         _endQuiz(isTimeUp: true);
       }
     });
   }
 
-    void _endQuiz({bool isTimeUp = false}) {
+  void _endQuiz({bool isTimeUp = false}) {
     _timer?.cancel();
     final questions = ref.read(customQuizQuestionsProvider).asData?.value ?? [];
     List<Question> finalIncorrectAnswers = List.from(_incorrectAnswers);
@@ -92,7 +98,7 @@ class _QuizInProgressScreenState extends ConsumerState<QuizInProgressScreen> wit
               child: const Text('البقاء في الاختبار'),
               onPressed: () {
                 Navigator.of(dialogContext).pop(); // Close the dialog
-                _startTimer(); // Resume the timer
+                _startOrResumeTimer(); // Resume the timer
               },
             ),
             TextButton(
@@ -115,7 +121,7 @@ class _QuizInProgressScreenState extends ConsumerState<QuizInProgressScreen> wit
     switch (state) {
       case AppLifecycleState.resumed:
         // Restart the timer when the app is resumed
-        _startTimer();
+        _startOrResumeTimer();
         break;
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
@@ -149,11 +155,7 @@ class _QuizInProgressScreenState extends ConsumerState<QuizInProgressScreen> wit
       });
     }
   }
-  String _formatTime(int seconds) {
-    final minutes = (seconds / 60).floor().toString().padLeft(2, '0');
-    final remainingSeconds = (seconds % 60).toString().padLeft(2, '0');
-    return '$minutes:$remainingSeconds';
-  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -208,7 +210,7 @@ class _QuizInProgressScreenState extends ConsumerState<QuizInProgressScreen> wit
           data: (questions) {
             if (_timer == null) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                 _startTimer();
+                 _startOrResumeTimer();
               });
             }
             if (questions.isEmpty) {

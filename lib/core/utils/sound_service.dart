@@ -4,34 +4,38 @@ import 'package:anatomy_quiz_app/presentation/providers/settings_provider.dart';
 
 class SoundService {
   final Ref _ref;
-  // AudioCache is the best way to handle short, preloaded sound effects.
-  final AudioPlayer _player = AudioPlayer();
+  // AudioCache is used to pre-load sounds for instant playback.
+  final AudioCache _audioCache = AudioCache(prefix: 'assets/sounds/');
 
-  SoundService(this._ref) {
-    // The constructor is now empty as we will call preloadSounds() manually.
+  SoundService(this._ref);
+
+  // This method should be called on app startup to load the sounds into memory.
+  Future<void> preloadSounds() async {
+    // You can add a print statement here to confirm preloading in debug mode.
+    print("Preloading sounds...");
+    await _audioCache.loadAll(['correct.mp3', 'incorrect.mp3']);
+    print("Sounds preloaded successfully.");
   }
 
-  // ## NEW: The Preloading Method ##
-  Future<void> preloadSounds() async {
-    // This will load both sound files into the cache.
-    // The player will look in the cache first before trying to load from assets.
-    await _player.setSource(AssetSource('sounds/correct.mp3'));
-    await _player.setSource(AssetSource('sounds/incorrect.mp3'));
+  void _playSound(String soundFile) {
+    if (_ref.read(settingsProvider)['sound'] ?? true) {
+      // ## THE FIX: Create a new player for each sound ##
+      // This is a "fire and forget" method. Each sound is independent.
+      final player = AudioPlayer();
+      // Tell the player to dispose of itself after it's done.
+      player.setReleaseMode(ReleaseMode.release);
+      // Play the sound from the cache.
+      player.play(AssetSource('sounds/$soundFile'));
+    }
   }
 
   void playCorrectSound() {
-    if (_ref.read(settingsProvider)['sound'] ?? true) {
-      // Now, playing the sound is much faster.
-      _player.play(AssetSource('sounds/correct.mp3'));
-    }
+    _playSound('correct.mp3');
   }
 
   void playIncorrectSound() {
-    if (_ref.read(settingsProvider)['sound'] ?? true) {
-      _player.play(AssetSource('sounds/incorrect.mp3'));
-    }
+    _playSound('incorrect.mp3');
   }
 }
 
-// The provider is the same
 final soundServiceProvider = Provider((ref) => SoundService(ref));
