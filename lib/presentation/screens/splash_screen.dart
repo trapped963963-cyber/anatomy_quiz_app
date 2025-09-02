@@ -12,65 +12,31 @@ import 'package:anatomy_quiz_app/core/utils/sound_service.dart';
 class SplashScreen extends ConsumerWidget {
   const SplashScreen({super.key});
 
-Future<void> _checkActivationAndNavigate(BuildContext context, WidgetRef ref) async {
-  print("--- Starting Activation Check ---");
+  Future<void> _checkActivationAndNavigate(BuildContext context, WidgetRef ref) async {
+    ref.read(soundServiceProvider).preloadSounds();
 
-  print("Step 1: Preloading sounds...");
-  await ref.read(soundServiceProvider).preloadSounds();
-  print("Step 2: Sounds preloaded. Getting SharedPreferences...");
+    final prefs = await SharedPreferences.getInstance();
+    final activationCode = prefs.getString('activationCode');
+    final phoneNumber = prefs.getString('phoneNumberForValidation');
+    final activationService = ref.read(activationServiceProvider);
+    bool isStillValid = false;
 
-  final prefs = await SharedPreferences.getInstance();
-  print("Step 3: Got SharedPreferences. Reading values...");
-
-  final activationCode = prefs.getString('activationCode');
-  final phoneNumber = prefs.getString('phoneNumberForValidation');
-  print("Step 4: Values read. Getting ActivationService...");
-
-  final activationService = ref.read(activationServiceProvider);
-  bool isStillValid = false;
-
-  if (activationCode != null && phoneNumber != null) {
-    print("Step 5: Found credentials. Verifying activation code...");
-    isStillValid = await activationService.verifyActivationCode(
-      phoneNumber: phoneNumber,
-      activationCode: activationCode,
-    );
-    print("Step 6: Verification complete. Result: $isStillValid");
-  } else {
-    print("Step 5: No credentials found. User is not activated.");
-    isStillValid = false;
-  }
-
-  if (!context.mounted) return;
-
-  if (isStillValid) {
-    print("Step 7: User is valid. Getting SecureStorageService...");
-    final secureStorage = ref.read(secureStorageServiceProvider);
-
-    print("Step 8: Getting DB Key from secure storage...");
-    final dbKey = await secureStorage.getDbKey();
-    print("Step 9: DB Key found. Value is null? ${dbKey == null}");
-
-    if (dbKey == null) {
-      print("Step 10a: DB Key is missing. Navigating to /welcome.");
-      if (context.mounted) context.go('/welcome');
-      return;
+    if (activationCode != null && phoneNumber != null) {
+      isStillValid = await activationService.verifyActivationCode(
+        phoneNumber: phoneNumber,
+        activationCode: activationCode,
+      );
     }
 
-    print("Step 10b: DB Key is present. Initializing EncryptionService...");
-    ref.read(encryptionServiceProvider).initialize(dbKey);
-    print("Step 11: EncryptionService initialized. Loading initial user data...");
+    if (!context.mounted) return;
 
-    await ref.read(userProgressProvider.notifier).loadInitialData();
-    print("Step 12: User data loaded. Navigating to /home.");
-
-    if (context.mounted) context.go('/home');
-  } else {
-    print("Step 7: User is not valid. Navigating to /welcome.");
-    if (context.mounted) context.go('/welcome');
+    if (isStillValid) {
+      await ref.read(userProgressProvider.notifier).loadInitialData();
+      if (context.mounted) context.go('/home');
+    } else {
+      context.go('/welcome');
+    }
   }
-}
-     
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
