@@ -7,6 +7,7 @@ import 'package:anatomy_quiz_app/presentation/widgets/quiz/diagram_widget.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/quiz/question_widget.dart';
 
 
+import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
 
 class ReviewQueueState {
   final List<Question> questions;
@@ -137,7 +138,7 @@ class _ReviewStepScreenState extends ConsumerState<ReviewStepScreen> {
               flex: 1,
               child: diagramAsync.when(
                 data: (diagram) => DiagramWidget(imageAssetPath: diagram.imageAssetPath),
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const AppLoadingIndicator(),
                 error: (e, s) => Center(child: Text('Error: $e')),
               ),
             ),

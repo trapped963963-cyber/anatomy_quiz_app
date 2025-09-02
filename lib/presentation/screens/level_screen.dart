@@ -8,8 +8,8 @@ import 'package:anatomy_quiz_app/presentation/widgets/path/step_island.dart';
 import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
 import 'package:anatomy_quiz_app/data/models/models.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:anatomy_quiz_app/presentation/widgets/quiz/diagram_widget.dart'; // ## ADD THIS IMPORT ##
-
+import 'package:anatomy_quiz_app/presentation/widgets/quiz/diagram_widget.dart';
+import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
 
 class LevelScreen extends ConsumerWidget {
   final int levelId;
@@ -126,7 +126,7 @@ class LevelScreen extends ConsumerWidget {
           ]
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppLoadingIndicator(),
         error: (e, s) => Center(child: Text('حدث خطأ: $e')),
       ),
     );

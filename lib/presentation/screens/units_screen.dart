@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anatomy_quiz_app/presentation/providers/learning_path_provider.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/path/diagrams_carousel.dart';
 
+import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
 class UnitsScreen extends ConsumerWidget {
   const UnitsScreen({super.key});
 
@@ -43,7 +44,7 @@ class UnitsScreen extends ConsumerWidget {
                       // While loading, show a placeholder.
                       loading: () => SizedBox(
                         height: 250.h,
-                        child: const Center(child: CircularProgressIndicator()),
+                        child: const AppLoadingIndicator(),
                       ),
                       // If there's an error, show an error message.
                       error: (e, st) => SizedBox(
@@ -72,7 +73,7 @@ class UnitsScreen extends ConsumerWidget {
             },
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppLoadingIndicator(),
         error: (e, st) => Center(child: Text('Error: $e')),
       ),
     );

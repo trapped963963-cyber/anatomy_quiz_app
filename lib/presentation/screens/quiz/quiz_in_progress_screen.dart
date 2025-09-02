@@ -13,6 +13,7 @@ import 'package:anatomy_quiz_app/presentation/widgets/quiz/animated_countdown_te
 import 'package:anatomy_quiz_app/presentation/providers/settings_provider.dart';
 
 
+import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
 
 class QuizInProgressScreen extends ConsumerStatefulWidget {
   const QuizInProgressScreen({super.key});
@@ -227,7 +228,7 @@ class _QuizInProgressScreenState extends ConsumerState<QuizInProgressScreen> wit
                   flex: 1,
                   child: diagramAsync.when(
                     data: (diagram) => DiagramWidget(imageAssetPath: diagram.imageAssetPath),
-                    loading: () => const Center(child: CircularProgressIndicator()),
+                    loading: () => const AppLoadingIndicator(),
                     error: (e, s) => const Center(child: Text('لا يمكن تحميل الرسم')),
                   ),
                 ),

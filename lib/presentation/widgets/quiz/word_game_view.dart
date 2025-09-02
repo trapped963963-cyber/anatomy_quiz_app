@@ -7,7 +7,7 @@ import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
 import 'package:anatomy_quiz_app/presentation/providers/providers.dart';
 import 'package:anatomy_quiz_app/core/utils/sound_service.dart';
 import 'package:flutter/services.dart';
-
+import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
 class WordGameView extends ConsumerStatefulWidget {
   final Question question;
   final QuestionMode mode;
@@ -148,7 +148,7 @@ class _WordGameViewState extends ConsumerState<WordGameView> {
       // If the game isn't set up, run the setup logic
       return LayoutBuilder(builder: (context, constraints) {
         _setupGame(constraints);
-        return const Center(child: CircularProgressIndicator());
+        return const AppLoadingIndicator();
       });
     }
 

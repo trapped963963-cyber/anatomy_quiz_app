@@ -8,6 +8,7 @@ import 'package:anatomy_quiz_app/presentation/providers/providers.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/activation/activation_code_input.dart';
 import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
 
+import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
 class ActivationCodeScreen extends ConsumerStatefulWidget {
   const ActivationCodeScreen({super.key});
 
@@ -43,6 +44,16 @@ class _ActivationCodeScreenState extends ConsumerState<ActivationCodeScreen> {
       phoneNumber: onboardingState.phoneNumber,
       fingerprint: fingerprint,
     );
+
+    // Now that the secrets are stored, get the DB key and initialize the service.
+    final secureStorage = ref.read(secureStorageServiceProvider);
+    final dbKey = await secureStorage.getDbKey();
+    if (dbKey != null) {
+      ref.read(encryptionServiceProvider).initialize(dbKey);
+    } else {
+      // This is a critical error if the key is missing after a successful fetch.
+      throw Exception("Failed to retrieve DB key after storing it.");
+    }
 
     // 3. Now, perform the offline verification with the pepper we just stored.
     final isValid = await activationService.verifyActivationCode(
@@ -121,7 +132,7 @@ class _ActivationCodeScreenState extends ConsumerState<ActivationCodeScreen> {
               SizedBox(height: 10.h),
               
               _isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const AppLoadingIndicator()
                   : ElevatedButton(
                       onPressed: _activationCode.length == 12 ? _activateApp : null,
                       child: const Text('تفعيل التطبيق'),

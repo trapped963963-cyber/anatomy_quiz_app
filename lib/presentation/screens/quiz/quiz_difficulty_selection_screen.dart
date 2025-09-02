@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:anatomy_quiz_app/data/models/models.dart';
 import 'package:anatomy_quiz_app/presentation/providers/custom_quiz_provider.dart';
 
+import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
 // It's now a ConsumerWidget to watch our new provider.
 class QuizDifficultySelectionScreen extends ConsumerWidget {
   const QuizDifficultySelectionScreen({super.key});
@@ -20,7 +21,7 @@ class QuizDifficultySelectionScreen extends ConsumerWidget {
       ),
       body: maxQuestionsAsync.when(
         // Show a loader while calculating.
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppLoadingIndicator(),
         error: (e, st) => Center(child: Text('Error: $e')),
         // Once we have the data, build the main UI.
         data: (maxQuestions) {

@@ -7,6 +7,7 @@ import 'package:anatomy_quiz_app/presentation/widgets/quiz/question_widget.dart'
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anatomy_quiz_app/data/models/question.dart';
 
+import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
 class StepScreen extends ConsumerStatefulWidget {
   final int levelId;
   final int stepNumber;
@@ -106,7 +107,7 @@ class _StepScreenState extends ConsumerState<StepScreen> {
               flex: 1,
               child: diagramAsync.when(
                 data: (diagram) => DiagramWidget(imageAssetPath: diagram.imageAssetPath),
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const AppLoadingIndicator(),
                 error: (e, s) => const Center(child: Text('لا يمكن تحميل الرسم')),
               ),
             ),

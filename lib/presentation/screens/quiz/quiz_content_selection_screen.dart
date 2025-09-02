@@ -8,6 +8,7 @@ import 'package:anatomy_quiz_app/presentation/providers/learning_path_provider.d
 import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
 import 'package:anatomy_quiz_app/presentation/providers/user_progress_provider.dart';
 
+import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
 
 class QuizContentSelectionScreen extends ConsumerStatefulWidget {
   const QuizContentSelectionScreen({super.key});
@@ -82,7 +83,7 @@ class _QuizContentSelectionScreenState extends ConsumerState<QuizContentSelectio
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppLoadingIndicator(),
         error: (e, st) => Center(child: Text('Error: $e')),
       ),
       floatingActionButton: FloatingActionButton.extended(

@@ -8,6 +8,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:anatomy_quiz_app/core/constants/app_strings.dart';
 import 'package:anatomy_quiz_app/core/utils/sound_service.dart';
+import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
 
 class SplashScreen extends ConsumerWidget {
   const SplashScreen({super.key});
@@ -30,10 +31,32 @@ class SplashScreen extends ConsumerWidget {
 
     if (!context.mounted) return;
 
-    if (isStillValid) {
+       if (isStillValid) {
+      // ## THE FIX: Initialize the EncryptionService here ##
+      // This happens only for a valid, activated user.
+
+      // 1. Get the secure storage service.
+      final secureStorage = ref.read(secureStorageServiceProvider);
+      // 2. Get the saved database decryption key.
+      final dbKey = await secureStorage.getDbKey();
+
+      // 3. Check if the key exists. If not, the activation is corrupt.
+      if (dbKey == null) {
+        // Clear the bad activation data and send the user back to the start.
+        await prefs.clear();
+        await secureStorage.deleteAll();
+        if (context.mounted) context.go('/welcome');
+        return;
+      }
+      
+      // 4. If the key exists, initialize the encryption service with it.
+      ref.read(encryptionServiceProvider).initialize(dbKey);
+      
+      // Now, with all services ready, load the user's progress.
       await ref.read(userProgressProvider.notifier).loadInitialData();
       if (context.mounted) context.go('/home');
     } else {
+      // If the user is not activated, go to the welcome screen.
       context.go('/welcome');
     }
   }
@@ -44,23 +67,7 @@ class SplashScreen extends ConsumerWidget {
 
     return Scaffold(
       body: dbAsync.when(
-        loading: () => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.science_outlined,
-                size: 100.r,
-                color: Theme.of(context).primaryColor,
-              ).animate().fade(duration: 1500.ms).scale(delay: 500.ms),
-              SizedBox(height: 30.h),
-              Text(
-                AppStrings.loadingMessage,
-                style: TextStyle(fontSize: 18.sp, color: Colors.grey.shade600),
-              ).animate().fadeIn(delay: 1000.ms),
-            ],
-          ),
-        ),
+        loading: () => const AppLoadingIndicator(),
         error: (err, stack) => Center(
           child: Padding(
             padding: EdgeInsets.all(24.w),
@@ -87,7 +94,7 @@ class SplashScreen extends ConsumerWidget {
           });
 
           // We still show the splash UI while the activation check runs.
-          return const Center(child: CircularProgressIndicator());
+          return const AppLoadingIndicator();
         },
       ),
     );
