@@ -30,11 +30,19 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch all necessary details as soon as the screen loads.
-    _fetchContactDetails();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchContactDetails();
+    });
   }
 
   Future<void> _fetchContactDetails() async {
+
+  if (!_isLoading) {
+    setState(() {
+      _isLoading = true;
+      _lastError = null;
+    });
+  }
 
   try {
     final apiService = ref.read(apiServiceProvider);
@@ -118,7 +126,6 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
   
   void _reportProblemToAdmin() async {
     final onboardingState = ref.read(onboardingProvider);
-    final activationService = ref.read(activationServiceProvider);
     final genderString = onboardingState.gender == Gender.male ? 'ذكر' : 'أنثى';
 
     String activationMessage = 'أرغب في تفعيل التطبيق.\n'
@@ -129,8 +136,9 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
     if (onboardingState.promoCode != null && onboardingState.promoCode!.isNotEmpty) {
       activationMessage += '\nالرمز الترويجي: ${onboardingState.promoCode}';
     }
-    final fingerprint = await activationService.generateDeviceFingerprint(onboardingState.phoneNumber);
-    activationMessage += '\nرمز الجهاز: $fingerprint';
+    
+    activationMessage += '\nرمز الجهاز: $_fingerprint';
+
 
     final reportMessage = "--- User Report ---\nError: $_lastError\n\n--- Original Request ---\n$activationMessage";
     final reportUrl = 'https://wa.me/$_backupContactNumber?text=${Uri.encodeComponent(reportMessage)}';
