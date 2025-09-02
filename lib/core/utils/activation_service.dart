@@ -14,18 +14,21 @@ class ActivationService {
 
   ActivationService(this._apiService, this._secureStorage);
 
-    // This is the one-time online activation step.
+  // This is the one-time online activation step.
   Future<void> fetchAndStorePepper({
     required String phoneNumber,
     required String fingerprint,
   }) async {
+
     // Call the API to get the user's unique pepper.
-    final secretPepper = await _apiService.getSecretPepper(
+    final secrets = await _apiService.getSecrets(
       phoneNumber: phoneNumber,
       fingerprint: fingerprint,
     );
     // Save it to the device's secure "safe".
-    await _secureStorage.saveSecretPepper(secretPepper);
+    await _secureStorage.saveSecretPepper(secrets['pepper']!);
+    await _secureStorage.saveDbKey(secrets['db_key']!); 
+  
   }
 
   Future<String> _getAppUUID() async {

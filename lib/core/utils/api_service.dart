@@ -41,7 +41,7 @@ class ApiService {
   }
 
   /// 2. Fetches the unique secret pepper for a user during activation.
-  Future<String> getSecretPepper({
+  Future<Map<String, String>> getSecrets({
     required String phoneNumber,
     required String fingerprint,
   }) async {
@@ -52,7 +52,10 @@ class ApiService {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      return data['secret_pepper'];
+        return {
+          'pepper': data['secret_pepper'],
+          'db_key': data['db_key'],
+        };
     } else {
       // Create a more specific error message if the server provides one
       final errorDetail = json.decode(response.body)['detail'] ?? 'Failed to get activation secret.';

@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:anatomy_quiz_app/data/models/models.dart';
 import 'package:anatomy_quiz_app/presentation/providers/database_provider.dart';
+import 'package:anatomy_quiz_app/presentation/providers/service_providers.dart';
 
 class CustomQuizConfigNotifier extends StateNotifier<CustomQuizConfig> {
   CustomQuizConfigNotifier() : super(const CustomQuizConfig());
@@ -23,16 +24,13 @@ final customQuizConfigProvider =
     StateNotifierProvider<CustomQuizConfigNotifier, CustomQuizConfig>((ref) {
   return CustomQuizConfigNotifier();
 });
-// At the top of custom_quiz_provider.dart
 
-// This is the final, complete provider.
-
-// This is the final, intelligent quiz generation engine.
 final customQuizQuestionsProvider = FutureProvider.autoDispose<List<Question>>((ref) async {
   // 1. Get the user's config and the database helper.
   final config = ref.watch(customQuizConfigProvider);
   final dbHelper = ref.watch(databaseHelperProvider);
-  
+  final encryptionService = ref.read(encryptionServiceProvider); // Get the service
+
   if (config.selectedDiagramIds.isEmpty) return [];
 
   // 2. Pre-flight Check: Accurately calculate the max questions and adjust if needed.
@@ -52,7 +50,14 @@ final customQuizQuestionsProvider = FutureProvider.autoDispose<List<Question>>((
   if (finalQuestionCount == 0) return [];
   
   // 3. Fetch all labels and group them by diagram for smart choice generation.
-  final allPossibleLabels = await dbHelper.getLabelsForDiagrams(config.selectedDiagramIds.toList());
+   final encryptedLabels = await dbHelper.getLabelsForDiagrams(config.selectedDiagramIds.toList());
+  if (encryptedLabels.isEmpty) return [];
+  
+  final allPossibleLabels = encryptedLabels.map((label) => label.copyWith(
+    title: encryptionService.decrypt(label.title),
+    definition: encryptionService.decrypt(label.definition),
+  )).toList();
+
   final Map<int, List<Label>> labelsByDiagram = {};
   for (var label in allPossibleLabels) {
     (labelsByDiagram[label.diagramId] ??= []).add(label);
@@ -61,7 +66,6 @@ final customQuizQuestionsProvider = FutureProvider.autoDispose<List<Question>>((
   // 4. GENERATION LOOP: Build the quiz while guaranteeing no repeats.
   final List<Question> questions = [];
   final Set<String> usedQuestionIds = {};
-  final random = Random();
   
   final shuffledLabels = List<Label>.from(allPossibleLabels)..shuffle();
   int labelIndex = 0;

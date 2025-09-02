@@ -3,6 +3,8 @@ import 'package:anatomy_quiz_app/core/utils/activation_service.dart';
 import 'package:anatomy_quiz_app/core/utils/api_service.dart';
 import 'package:anatomy_quiz_app/core/utils/secure_storage_service.dart';
 import 'package:anatomy_quiz_app/core/utils/user_activity_service.dart';
+import 'package:anatomy_quiz_app/core/utils/encryption_service.dart';
+
 
 final activationServiceProvider = Provider((ref) {
   final apiService = ref.watch(apiServiceProvider);
@@ -22,3 +24,5 @@ final userActivityServiceProvider = Provider((ref) {
   final activationService = ref.watch(activationServiceProvider);
   return UserActivityService(apiService, activationService);
 });
+
+final encryptionServiceProvider = Provider((ref) => EncryptionService());

@@ -31,12 +31,22 @@ class SplashScreen extends ConsumerWidget {
     if (!context.mounted) return;
 
     if (isStillValid) {
+      // ## THE FIX: Get the SecureStorageService from its provider ##
+      final secureStorage = ref.read(secureStorageServiceProvider);
+      
+      final dbKey = await secureStorage.getDbKey();
+      if (dbKey == null) {
+        if (context.mounted) context.go('/welcome');
+        return;
+      }
+      
+      ref.read(encryptionServiceProvider).initialize(dbKey);
+
       await ref.read(userProgressProvider.notifier).loadInitialData();
       if (context.mounted) context.go('/home');
-    } else {
-      context.go('/welcome');
     }
   }
+     
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
