@@ -4,10 +4,13 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:anatomy_quiz_app/data/models/models.dart';
+import 'package:anatomy_quiz_app/core/utils/encryption_service.dart'; // ## ADD THIS IMPORT ##
+
 
 class DatabaseHelper {
   
-  DatabaseHelper();
+  final EncryptionService _encryptionService;
+  DatabaseHelper(this._encryptionService);
   Database? _database;
 
   Future<Database> get database async {
@@ -63,9 +66,10 @@ class DatabaseHelper {
     );
 
     if (maps.isNotEmpty) {
-      return AnatomicalDiagram.fromMap(maps.first);
+      final diagram =  AnatomicalDiagram.fromMap(maps.first);
+      return diagram.copyWith(title: _encryptionService.decrypt(diagram.title));
     }
-    return null; // Return null if no diagram was found
+    return null;
   }
   
   Future<List<Label>> getLabelsForDiagram(int diagramId) async {
@@ -75,10 +79,15 @@ class DatabaseHelper {
       where: 'diagram_id = ?',
       whereArgs: [diagramId],
     );
-
-    return List.generate(maps.length, (i) {
-      return Label.fromMap(maps[i]);
-    });
+    
+    return maps.map((map) {
+      final label = Label.fromMap(map);
+      return label.copyWith(
+        title: _encryptionService.decrypt(label.title),
+        definition: _encryptionService.decrypt(label.definition),
+      );
+    }).toList();
+  
   }
   
   Future<bool> validatePromoCode(String hash) async {
@@ -90,6 +99,57 @@ class DatabaseHelper {
       limit: 1,
     );
     return result.isNotEmpty;
+  }
+
+  Future<List<Unit>> getUnits() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('units', orderBy: 'id');
+    return maps.map((map) {
+      final unit = Unit.fromMap(map);
+      return Unit(
+        id: unit.id,
+        title: _encryptionService.decrypt(unit.title),
+      );
+    }).toList();
+  }
+
+  Future<List<AnatomicalDiagram>> getDiagramsForUnit(int unitId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'diagrams',
+      where: 'unit_id = ?',
+      whereArgs: [unitId],
+      orderBy: 'id',
+    );
+    return await Future.wait(maps.map((map) async {
+      final diagram = AnatomicalDiagram.fromMap(map);
+      final count = await getLabelsCountForDiagram(diagram.id);
+      return diagram.copyWith(
+        title: _encryptionService.decrypt(diagram.title),
+        totalSteps: count
+      );
+    }));
+  }
+
+  Future<List<Label>> getLabelsForDiagrams(List<int> diagramIds) async {
+    if (diagramIds.isEmpty) return [];
+    final db = await database;
+    // Use a 'WHERE IN' clause to get all labels for the selected diagrams at once.
+    final placeholders = ('?' * diagramIds.length).split('').join(',');
+    final List<Map<String, dynamic>> maps = await db.query(
+      'labels',
+      where: 'diagram_id IN ($placeholders)',
+      whereArgs: diagramIds,
+    );
+
+    // ## DECRYPT HERE ##
+    return maps.map((map) {
+      final label = Label.fromMap(map);
+      return label.copyWith(
+        title: _encryptionService.decrypt(label.title),
+        definition: _encryptionService.decrypt(label.definition),
+      );
+    }).toList();  
   }
 
   // --- User Progress Methods ---
@@ -127,45 +187,8 @@ class DatabaseHelper {
     return Sqflite.firstIntValue(result) ?? 0;
   }
 
-  Future<List<Unit>> getUnits() async {
-    final db = await database;
-    // Order by ID to ensure a consistent order
-    final List<Map<String, dynamic>> maps = await db.query('units', orderBy: 'id');
-    return List.generate(maps.length, (i) {
-      return Unit.fromMap(maps[i]);
-    });
-  }
 
-  Future<List<AnatomicalDiagram>> getDiagramsForUnit(int unitId) async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'diagrams',
-      where: 'unit_id = ?',
-      whereArgs: [unitId],
-      orderBy: 'id',
-    );
-
-    // Use Future.wait to efficiently get the label count for each diagram
-    return await Future.wait(maps.map((map) async {
-      final diagram = AnatomicalDiagram.fromMap(map);
-      final count = await getLabelsCountForDiagram(diagram.id);
-      // Return a new diagram object that includes the totalSteps
-      return diagram.copyWith(totalSteps: count);
-    }));
-  }
-
- Future<List<Label>> getLabelsForDiagrams(List<int> diagramIds) async {
-  if (diagramIds.isEmpty) return [];
-  final db = await database;
-  // Use a 'WHERE IN' clause to get all labels for the selected diagrams at once.
-  final placeholders = ('?' * diagramIds.length).split('').join(',');
-  final List<Map<String, dynamic>> maps = await db.query(
-    'labels',
-    where: 'diagram_id IN ($placeholders)',
-    whereArgs: diagramIds,
-  );
-  return List.generate(maps.length, (i) => Label.fromMap(maps[i]));
-}
+ 
 
 Future<Map<String, int>> getLabelCounts(List<int> diagramIds) async {
   if (diagramIds.isEmpty) return {'total': 0, 'withDef': 0};
