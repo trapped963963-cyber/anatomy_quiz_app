@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:anatomy_quiz_app/data/models/models.dart';
 import 'package:anatomy_quiz_app/presentation/providers/database_provider.dart';
 import 'dart:math';
-import 'package:anatomy_quiz_app/presentation/providers/service_providers.dart';
 // This class will hold the state of a single quiz session
 class QuizState {
   final List<Question> questions;
@@ -189,22 +188,14 @@ final quizProvider = StateNotifierProvider.autoDispose<QuizNotifier, QuizState>(
 
 final diagramWithLabelsProvider = FutureProvider.autoDispose.family<AnatomicalDiagram, int>((ref, levelId) async {
   final db = ref.watch(databaseHelperProvider);
-  final encryptionService = ref.read(encryptionServiceProvider);
 
+  // ## THE FIX: Call the new, more efficient method ##
   final diagramData = await db.getDiagramById(levelId);
+
   if (diagramData == null) {
     throw Exception('Diagram with ID $levelId not found.');
   }
 
   final labels = await db.getLabelsForDiagram(levelId);
-  // Decrypt the list of labels
-  final decryptedLabels = labels.map((label) => label.copyWith(
-    title: encryptionService.decrypt(label.title),
-    definition: encryptionService.decrypt(label.definition),
-  )).toList();
-
-  return diagramData.copyWith(
-    title: encryptionService.decrypt(diagramData.title),
-    labels: decryptedLabels,
-  );
+  return diagramData.copyWith(labels: labels);
 });
