@@ -65,16 +65,19 @@ dependencies:
   confetti: ^0.7.0
   cupertino_icons: ^1.0.8
 
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  
+  flutter_lints: ^5.0.0
+  flutter_native_splash: ^2.4.0
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -114,3 +117,18 @@ flutter:
           weight: 800
         - asset: assets/fonts/cairo/Cairo-Black.ttf
           weight: 900
+
+# Add this entire section to the end of your pubspec.yaml
+flutter_native_splash:
+  # The background color of your native splash screen.
+  # Use the same color as your app's background.
+  color: "#F0F4F8" 
+
+  # (Optional) You can put your app's logo here.
+  # It should be a simple PNG file.
+  # image: assets/images/logo.png 
+
+  # For Android 12 and above, which has special splash screen requirements.
+  android_12:
+    color: "#F0F4F8"
+    # image: assets/images/logo.png

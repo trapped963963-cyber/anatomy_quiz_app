@@ -7,6 +7,7 @@ import 'package:anatomy_quiz_app/core/utils/api_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:anatomy_quiz_app/data/models/user_progress.dart';
 import 'package:anatomy_quiz_app/presentation/providers/providers.dart';
+import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
 
 class ContactAdminScreen extends ConsumerStatefulWidget {
   const ContactAdminScreen({super.key});
@@ -160,7 +161,7 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const CircularProgressIndicator();
+      return const AppLoadingIndicator();
     }
     if (_lastError != null) {
       return _buildErrorState();

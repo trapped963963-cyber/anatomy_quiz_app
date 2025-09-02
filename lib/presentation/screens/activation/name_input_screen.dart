@@ -20,7 +20,7 @@ class _NameInputScreenState extends ConsumerState<NameInputScreen> {
   @override
   void initState() {
     super.initState();
-    // This listener will call setState() every time the user types in the name field,
+    // This listener will call setState() every time the user types t the name field,
     // forcing the button to update its state.
     _nameController.addListener(() {
       setState(() {});
