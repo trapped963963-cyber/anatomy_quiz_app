@@ -1,26 +1,32 @@
-import 'package:encrypt/encrypt.dart';
+import 'dart:convert'; // Import the dart:convert library for utf8
+import 'package:fernet/fernet.dart';
+import 'package:flutter/foundation.dart'; // Import for Uint8List
 
 class EncryptionService {
-  Encrypter? _encrypter;
-  final _iv = IV.fromLength(16); // Initialization Vector
+  Fernet? _fernet;
 
   // This method will be called once on app startup to set the key.
   void initialize(String base64Key) {
-    final key = Key.fromBase64(base64Key);
-    _encrypter = Encrypter(AES(key));
+    try {
+      _fernet = Fernet(base64Key);
+    } catch (e) {
+      print('Failed to initialize Fernet with key: $e');
+    }
   }
 
   // This is the main method we'll use to decrypt text from the database.
   String decrypt(String encryptedText) {
     // If the service hasn't been initialized, return an error message.
-    if (_encrypter == null) {
+    if (_fernet == null) {
       return 'Encryption key not set';
     }
 
     try {
-      final encrypted = Encrypted.fromBase64(encryptedText);
-      // Use the IV for AES decryption
-      return _encrypter!.decrypt(encrypted, iv: _iv);
+          // Step 1: Decrypt the text into a list of bytes (Uint8List).
+          final Uint8List decryptedBytes = _fernet!.decrypt(encryptedText);
+
+          // Step 2: Decode the bytes into a human-readable string using UTF-8.
+          return utf8.decode(decryptedBytes);
     } catch (e) {
       // If decryption fails, return the original text to avoid crashes.
       print('Decryption failed: $e');
