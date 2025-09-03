@@ -74,6 +74,7 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                   ),
                   SizedBox(height: 30.h),
                   PhoneNumberInput(
+                    initialValue: _phoneNumber,
                     onValueChanged: _onPhoneChanged,
                     onCompleted: (number) {
                     },

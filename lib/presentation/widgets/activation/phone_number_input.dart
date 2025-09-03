@@ -7,11 +7,13 @@ import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
 class PhoneNumberInput extends StatefulWidget {
   final Function(String) onCompleted;
   final Function(String) onValueChanged;
+  final String? initialValue;
 
   const PhoneNumberInput({
     super.key,
     required this.onCompleted,
     required this.onValueChanged,
+    this.initialValue,
   });
 
   @override
@@ -30,6 +32,11 @@ void initState() {
   _controllers[0].text = '0';
   _controllers[1].text = '9';
 
+  if (widget.initialValue != null && widget.initialValue!.length == 10) {
+    for (int i = 2; i < 10; i++) {
+      _controllers[i].text = widget.initialValue![i];
+    }
+  }
   // ## THIS IS THE NEW LOGIC ##
   // Add a listener to each focus node.
   for (int i = 0; i < _focusNodes.length; i++) {
