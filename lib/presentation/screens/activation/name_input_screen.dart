@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:anatomy_quiz_app/presentation/providers/onboarding_provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anatomy_quiz_app/data/models/user_progress.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // ## ADD THIS IMPORT ##
+
 class NameInputScreen extends ConsumerStatefulWidget {
   const NameInputScreen({super.key});
 
@@ -15,30 +16,58 @@ class _NameInputScreenState extends ConsumerState<NameInputScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   Gender? _selectedGender; // State for the selected gender
+  bool _isLoading = true; // To show a loader while we read from storage
 
  
   @override
   void initState() {
     super.initState();
-    // This listener will call setState() every time the user types t the name field,
-    // forcing the button to update its state.
-    _nameController.addListener(() {
-      setState(() {});
-    });
+    _loadInitialData(); // Load data when the screen starts
+    _nameController.addListener(_onNameChanged);
   }
  
+  Future<void> _loadInitialData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedName = prefs.getString('onboarding_name');
+    final savedGenderString = prefs.getString('onboarding_gender');
+
+    if (savedName != null) {
+      _nameController.text = savedName;
+    }
+    if (savedGenderString != null) {
+      _selectedGender = savedGenderString == 'male' ? Gender.male : Gender.female;
+    }
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _onNameChanged() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('onboarding_name', _nameController.text);
+  }
+
+  Future<void> _onGenderChanged(Gender? gender) async {
+    setState(() {
+      _selectedGender = gender;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    if (gender != null) {
+      await prefs.setString('onboarding_gender', gender == Gender.male ? 'male' : 'female');
+    } else {
+      await prefs.remove('onboarding_gender');
+    }
+  }
+
   void _onNext() {
-    // Validate both name and gender before proceeding
     if (_formKey.currentState!.validate() && _selectedGender != null) {
-      ref.read(onboardingProvider.notifier).setName(_nameController.text.trim());
-      ref.read(onboardingProvider.notifier).setGender(_selectedGender!);
       context.push('/phone');
     }
   }
 
   @override
   void dispose() {
-    _nameController.removeListener(() {});
+    _nameController.removeListener(_onNameChanged);
     _nameController.dispose();
     super.dispose();
   }
@@ -47,86 +76,69 @@ class _NameInputScreenState extends ConsumerState<NameInputScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('خطوة 1 من 5')),
-      body: Padding(
-        padding: EdgeInsets.all(24.w),
-        child: Form(
-          key: _formKey,
-          child: LayoutBuilder(builder: (context, constraints){
-            return SingleChildScrollView(
-              child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text('ما هو اسمك؟', style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-                    SizedBox(height: 30.h),
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(labelText: 'الاسم', border: OutlineInputBorder()),
-                      validator: (value) {
-                        if (value == null || value.trim().length < 2) return 'الرجاء إدخال اسم لا يقل عن حرفين';
-                        if (value.contains(RegExp(r'[0-9]'))) return 'لا يمكن أن يحتوي الاسم على أرقام';
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 30.h),
-                    Text('أنا:', style: TextStyle(fontSize: 18.sp), textAlign: TextAlign.center),
-                    SizedBox(height: 10.h),
-                
-                    // ## NEW: Gender Selection UI ##
-                    SegmentedButton<Gender>(
-                      // We are moving the segments definition inside the build method
-                      // so it can react to state changes.
-                      segments: <ButtonSegment<Gender>>[
-                        ButtonSegment<Gender>(
-                          value: Gender.male,
-                          label: const Text('ذكر'),
-                          // ## NEW: Add an icon that changes based on selection ##
-                          icon: Icon(
-                                Icons.man_sharp,       // The default icon
-                          ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: EdgeInsets.all(24.w),
+              child: Form(
+                key: _formKey,
+                child: LayoutBuilder(builder: (context, constraints){
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
                         ),
-                        ButtonSegment<Gender>(
-                          value: Gender.female,
-                          label: const Text('أنثى'),
-                          // ## NEW: Add an icon that changes based on selection ##
-                          icon: Icon(
-                                 Icons.woman_sharp,     // The default icon
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text('ما هو اسمك؟', style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                          SizedBox(height: 30.h),
+                          TextFormField(
+                            controller: _nameController,
+                            decoration: const InputDecoration(labelText: 'الاسم', border: OutlineInputBorder()),
+                            validator: (value) {
+                              if (value == null || value.trim().length < 2) return 'الرجاء إدخال اسم لا يقل عن حرفين';
+                              if (value.contains(RegExp(r'[0-9]'))) return 'لا يمكن أن يحتوي الاسم على أرقام';
+                              return null;
+                            },
                           ),
-                        ),
-                      ],
-                      selected: _selectedGender != null ? {_selectedGender!} : {},
-                      onSelectionChanged: (Set<Gender> newSelection) {
-                        setState(() {
-                          if (newSelection.isNotEmpty) {
-                            _selectedGender = newSelection.first;
-                          } else {
-                            _selectedGender = null;
-                          }
-                        });
-                      },
-                      emptySelectionAllowed: true,
-                      showSelectedIcon: false,
-                
+                          SizedBox(height: 30.h),
+                          Text('أنا:', style: TextStyle(fontSize: 18.sp), textAlign: TextAlign.center),
+                          SizedBox(height: 10.h),
+                          SegmentedButton<Gender>(
+                            segments: <ButtonSegment<Gender>>[
+                              ButtonSegment<Gender>(
+                                value: Gender.male,
+                                label: const Text('ذكر'),
+                                icon: Icon(Icons.man_sharp,),
+                              ),
+                              ButtonSegment<Gender>(
+                                value: Gender.female,
+                                label: const Text('أنثى'),
+                                icon: Icon(Icons.woman_sharp,),
+                              ),
+                            ],
+                            selected: _selectedGender != null ? {_selectedGender!} : {},
+                            onSelectionChanged: (Set<Gender> newSelection) {
+                              _onGenderChanged(newSelection.isNotEmpty ? newSelection.first : null);
+                            },
+                            emptySelectionAllowed: true,
+                            showSelectedIcon: false,
+                          ),
+                          SizedBox(height: 30.h),
+                          ElevatedButton(
+                            onPressed: (_nameController.text.trim().length >= 2 && _selectedGender != null) ? _onNext : null,
+                            child: const Text('التالي'),
+                          ),
+                          TextButton(onPressed: () => context.pop(), child: const Text('رجوع')),
+                        ],
+                      ),
                     ),
-                
-                    SizedBox(height: 30.h),
-                    ElevatedButton(
-                      // Button is disabled until both fields are valid
-                      onPressed: (_nameController.text.isNotEmpty && _selectedGender != null) ? _onNext : null,
-                      child: const Text('التالي'),
-                    ),
-                    TextButton(onPressed: () => context.pop(), child: const Text('رجوع')),
-                  ],
+                  );}
                 ),
               ),
-            );}
-          ),
-        ),
-      ),
+            ),
     );
   }
 }

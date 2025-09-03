@@ -7,8 +7,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anatomy_quiz_app/presentation/providers/providers.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/activation/activation_code_input.dart';
 import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
-
 import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
+import 'package:anatomy_quiz_app/data/models/user_progress.dart';
+
 class ActivationCodeScreen extends ConsumerStatefulWidget {
   const ActivationCodeScreen({super.key});
 
@@ -29,61 +30,63 @@ class _ActivationCodeScreenState extends ConsumerState<ActivationCodeScreen> {
       _isLoading = true;
       _errorText = null;
     });
-
-    final activationService = ref.read(activationServiceProvider);
-    final onboardingState = ref.read(onboardingProvider);
-    final userNotifier = ref.read(userProgressProvider.notifier);
+    
 
     try {
-    
-    // 1. First, generate a fresh fingerprint.
-    final fingerprint = await activationService.generateDeviceFingerprint(onboardingState.phoneNumber);
-
-    // 2. ## NEW ## Call the API to fetch and store the secret pepper.
-    await activationService.fetchAndStorePepper(
-      phoneNumber: onboardingState.phoneNumber,
-      fingerprint: fingerprint,
-    );
-
-    // Now that the secrets are stored, get the DB key and initialize the service.
-    final secureStorage = ref.read(secureStorageServiceProvider);
-    final dbKey = await secureStorage.getDbKey();
-    if (dbKey != null) {
-      ref.read(encryptionServiceProvider).initialize(dbKey);
-    } else {
-      // This is a critical error if the key is missing after a successful fetch.
-      throw Exception("Failed to retrieve DB key after storing it.");
-    }
-
-    // 3. Now, perform the offline verification with the pepper we just stored.
-    final isValid = await activationService.verifyActivationCode(
-      phoneNumber: onboardingState.phoneNumber,
-      activationCode: _activationCode,
-    );
-
-
-    if (isValid) {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('activationCode', _activationCode);
-      await prefs.setString('phoneNumberForValidation', onboardingState.phoneNumber);
-      
-      await userNotifier.setUserName(onboardingState.name);
-      if (onboardingState.gender != null) {
-        await userNotifier.setGender(onboardingState.gender!);
+      final phoneNumber = prefs.getString('onboarding_phone');
+      final userName = prefs.getString('onboarding_name');
+      final genderString = prefs.getString('onboarding_gender');
+
+      if (phoneNumber == null || userName == null || genderString == null) {
+        throw Exception("Missing user data from previous steps.");
       }
-      if (mounted) context.go('/home');
-    } else {
-      setState(() {
-        _errorText = 'كود التفعيل غير صحيح. الرجاء المحاولة مرة أخرى.';
+
+      final gender = genderString == 'male' ? Gender.male : Gender.female;
+      final activationService = ref.read(activationServiceProvider);
+      final secureStorage = ref.read(secureStorageServiceProvider);
+      final userNotifier = ref.read(userProgressProvider.notifier);
+
+      final fingerprint = await activationService.generateDeviceFingerprint(phoneNumber);
+      
+      await activationService.fetchAndStorePepper(
+        phoneNumber: phoneNumber,
+        fingerprint: fingerprint,
+      );
+
+      final dbKey = await secureStorage.getDbKey();
+      if (dbKey != null) {
+        ref.read(encryptionServiceProvider).initialize(dbKey);
+      } else {
+        throw Exception("Failed to retrieve DB key after storing it.");
+      }
+
+      final isValid = await activationService.verifyActivationCode(
+        phoneNumber: phoneNumber,
+        activationCode: _activationCode,
+      );
+
+
+      if (isValid) {
+        await prefs.setString('activationCode', _activationCode);
+        await prefs.setString('phoneNumberForValidation', phoneNumber);
+        
+        await userNotifier.setUserName(userName);
+        await userNotifier.setGender(gender);
+        
+        if (mounted) context.go('/home');
+      } else {
+        setState(() {
+          _errorText = 'كود التفعيل غير صحيح. الرجاء المحاولة مرة أخرى.';
+          _isLoading = false;
+        });
+      }
+    } catch(e) {
+        setState(() {
+        _errorText = 'فشل استرداد بيانات التفعيل. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.';
         _isLoading = false;
       });
     }
-  } catch(e) {
-       setState(() {
-      _errorText = 'فشل استرداد بيانات التفعيل. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.';
-      _isLoading = false;
-    });
-  }
   }
 
   @override
@@ -132,7 +135,7 @@ class _ActivationCodeScreenState extends ConsumerState<ActivationCodeScreen> {
               SizedBox(height: 10.h),
               
               _isLoading
-                  ? const AppLoadingIndicator()
+                  ? const Center(child: CircularProgressIndicator())
                   : ElevatedButton(
                       onPressed: _activationCode.length == 12 ? _activateApp : null,
                       child: const Text('تفعيل التطبيق'),

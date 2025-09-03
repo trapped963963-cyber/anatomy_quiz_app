@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:anatomy_quiz_app/presentation/providers/onboarding_provider.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/activation/phone_number_input.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // ## ADD THIS IMPORT ##
+
 
 class PhoneInputScreen extends ConsumerStatefulWidget {
   const PhoneInputScreen({super.key});
@@ -16,9 +17,37 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
   String _phoneNumber = '';
   bool _isComplete = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadInitialData();
+  }
+
+  Future<void> _loadInitialData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedPhone = prefs.getString('onboarding_phone');
+
+    if (savedPhone != null) {
+      setState(() {
+        _phoneNumber = savedPhone;
+        _isComplete = savedPhone.length == 10;
+      });
+    }
+  }
+
+  // ## NEW: Save data immediately on change ##
+  Future<void> _onPhoneChanged(String value) async {
+    setState(() {
+      _phoneNumber = value;
+      _isComplete = value.length == 10;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('onboarding_phone', value);
+  }
+
   void _onNext() {
     if (_isComplete) {
-      ref.read(onboardingProvider.notifier).setPhoneNumber(_phoneNumber);
+      // No need to save to provider, just navigate
       context.push('/promo');
     }
   }
@@ -45,20 +74,10 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                   ),
                   SizedBox(height: 30.h),
                   PhoneNumberInput(
-                    onValueChanged: (value) {
-                      // This runs on every key press.
-                      setState(() {
-                        _phoneNumber = value;
-                        // The button is only enabled if the length is exactly 10.
-                        _isComplete = value.length == 10;
-                      });
-                    },
+                    onValueChanged: _onPhoneChanged,
                     onCompleted: (number) {
-                      // This now runs only once at the end. We can use it for
-                      // specific actions like hiding the keyboard, but the main
-                      // logic is now in onValueChanged. For now, we can leave it empty.
                     },
-                  ),
+                  ),            
                   SizedBox(height: 30.h),
                   ElevatedButton(
                     onPressed: _isComplete ? _onNext : null,

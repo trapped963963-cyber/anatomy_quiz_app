@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anatomy_quiz_app/presentation/providers/database_provider.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/activation/promo_code_input.dart';
 import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
-import 'package:flutter/services.dart';
-import 'package:anatomy_quiz_app/presentation/providers/onboarding_provider.dart';
 
 class PromoCodeScreen extends ConsumerStatefulWidget {
   const PromoCodeScreen({super.key});
@@ -23,33 +23,65 @@ class _PromoCodeScreenState extends ConsumerState<PromoCodeScreen> {
   String? _errorText;
   String? _successText;
   bool _isCodeValid = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInitialData();
+  }
+
+  Future<void> _loadInitialData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedCode = prefs.getString('onboarding_promo_code');
+
+    if (savedCode != null && savedCode.isNotEmpty) {
+      // If a code was saved, validate it to restore the UI state
+      await _validateCode(savedCode);
+      // We also need to manually trigger the paste method to fill the UI boxes
+      // This is a good example of why GlobalKey is useful
+      _promoCodeInputKey.currentState?.paste(savedCode);
+    }
+    
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
 
   Future<void> _validateCode(String code) async {
     final db = ref.read(databaseHelperProvider);
+    final prefs = await SharedPreferences.getInstance();
     final bytes = utf8.encode(code.toUpperCase());
     final hash = sha256.convert(bytes).toString();
     final isValid = await db.validatePromoCode(hash);
 
-    if (isValid) {ref.read(onboardingProvider.notifier).setPromoCode(code.toUpperCase());}
     setState(() {
       _isCodeValid = isValid;
       if (isValid) {
         _successText = 'رمز ترويجي صالح!';
         _errorText = null;
-
-
+        prefs.setString('onboarding_promo_code', code.toUpperCase());
       } else {
         _errorText = 'الرمز الترويجي غير صالح';
         _successText = null;
+        prefs.remove('onboarding_promo_code');
       }
     });
+  }
+
+  Future<void> _clearPromoCode() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('onboarding_promo_code');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('خطوة 3 من 5 (اختياري)')),
-      body: Padding(
+      body: _isLoading
+      ? const Center(child: CircularProgressIndicator())
+      : Padding(
         padding: EdgeInsets.all(24.w),
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -74,6 +106,9 @@ class _PromoCodeScreenState extends ConsumerState<PromoCodeScreen> {
                         _isCodeValid = false;
                         _errorText = null;
                         _successText = null;
+                        if (value.isEmpty) {
+                          _clearPromoCode();
+                          }
                       });
                     },
                     onCompleted: (code) {
@@ -140,7 +175,10 @@ class _PromoCodeScreenState extends ConsumerState<PromoCodeScreen> {
                   
                   
                   TextButton(
-                    onPressed: () => context.push('/contact'),
+                    onPressed: () {
+                       _clearPromoCode();
+                       context.push('/contact');
+                       },
                     child: const Text('تخطي'),
                   ),
                   TextButton(onPressed: () => context.pop(), child: const Text('رجوع')),

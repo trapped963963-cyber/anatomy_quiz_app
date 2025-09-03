@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anatomy_quiz_app/core/utils/api_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:anatomy_quiz_app/data/models/user_progress.dart';
@@ -17,16 +18,18 @@ class ContactAdminScreen extends ConsumerStatefulWidget {
 }
 
 class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
-  // State variables to manage the API call and data fetching
   bool _isLoading = true;
   String? _contactNumber;
   String? _fingerprint;
   String? _lastError;
   int _apiFailedAttempts = 0;
-
-  // Your hardcoded backup number for the "Report Problem" button.
-  // Make sure to change this to your actual backup number.
   final String _backupContactNumber = "+963997564200";
+
+  // ## NEW: State variables to hold the user's data from SharedPreferences ##
+  String _userName = '';
+  String _gender = '';
+  String _phoneNumber = '';
+  String _promoCode = '';
 
   @override
   void initState() {
@@ -46,17 +49,29 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
   }
 
   try {
+
+    final prefs = await SharedPreferences.getInstance();
     final apiService = ref.read(apiServiceProvider);
     final activationService = ref.read(activationServiceProvider);
-    final onboardingState = ref.read(onboardingProvider);
+
+    // Load user data from SharedPreferences
+    final phone = prefs.getString('onboarding_phone') ?? '';
+    final name = prefs.getString('onboarding_name') ?? '';
+    final gender = prefs.getString('onboarding_gender') == 'male' ? 'ذكر' : 'أنثى';
+    final promo = prefs.getString('onboarding_promo_code') ?? '';
+      
 
     final results = await Future.wait([
       apiService.getContactNumber(),
-      activationService.generateDeviceFingerprint(onboardingState.phoneNumber),
+      activationService.generateDeviceFingerprint(phone),
     ]);
 
     if (mounted) {
       setState(() {
+        _userName = name;
+        _gender = gender;
+        _phoneNumber = phone;
+        _promoCode = promo;
         _contactNumber = results[0];
         _fingerprint = results[1];
         _isLoading = false;
@@ -126,16 +141,14 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
   }
   
   void _reportProblemToAdmin() async {
-    final onboardingState = ref.read(onboardingProvider);
-    final genderString = onboardingState.gender == Gender.male ? 'ذكر' : 'أنثى';
-
-    String activationMessage = 'أرغب في تفعيل التطبيق.\n'
-        'الاسم: ${onboardingState.name}\n'
-        'الجنس: $genderString\n'
-        'رقم الهاتف: ${onboardingState.phoneNumber}';
     
-    if (onboardingState.promoCode != null && onboardingState.promoCode!.isNotEmpty) {
-      activationMessage += '\nالرمز الترويجي: ${onboardingState.promoCode}';
+    String activationMessage = 'أرغب في تفعيل التطبيق.\n'
+        'الاسم: $_userName\n'
+        'الجنس: $_gender\n'
+        'رقم الهاتف: $_phoneNumber';
+    
+    if (_promoCode.isNotEmpty) {
+      activationMessage += '\nالرمز الترويجي: $_promoCode';
     }
     
     activationMessage += '\nرمز الجهاز: $_fingerprint';
@@ -174,15 +187,14 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
   }
 
   Widget _buildSuccessState() {
-    final onboardingState = ref.read(onboardingProvider);
-    final genderString = onboardingState.gender == Gender.male ? 'ذكر' : 'أنثى';
+    
     String message = 'أرغب في تفعيل التطبيق.\n'
-        'الاسم: ${onboardingState.name}\n'
-        'الجنس: $genderString\n'
-        'رقم الهاتف: ${onboardingState.phoneNumber}';
+        'الاسم: $_userName\n'
+        'الجنس: $_gender\n'
+        'رقم الهاتف: $_phoneNumber';
 
-    if (onboardingState.promoCode != null && onboardingState.promoCode!.isNotEmpty) {
-      message += '\nالرمز الترويجي: ${onboardingState.promoCode}';
+    if (_promoCode.isNotEmpty) {
+      message += '\nالرمز الترويجي: $_promoCode';
     }
     message += '\nرمز الجهاز: $_fingerprint';
 
