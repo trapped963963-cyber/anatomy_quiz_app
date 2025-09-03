@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anatomy_quiz_app/core/utils/api_service.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:anatomy_quiz_app/data/models/user_progress.dart';
 import 'package:anatomy_quiz_app/presentation/providers/providers.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
 

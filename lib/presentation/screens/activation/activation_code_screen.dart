@@ -7,7 +7,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anatomy_quiz_app/presentation/providers/providers.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/activation/activation_code_input.dart';
 import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
-import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
 import 'package:anatomy_quiz_app/data/models/user_progress.dart';
 
 class ActivationCodeScreen extends ConsumerStatefulWidget {
