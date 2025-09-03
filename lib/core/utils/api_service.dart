@@ -11,6 +11,12 @@ class NoInternetException implements Exception {
   String toString() => message;
 }
 
+class ApiTimeoutException implements Exception {
+  final String message = 'استغرق الخادم وقتاً طويلاً للرد. الرجاء المحاولة مرة أخرى.';
+  @override
+  String toString() => message;
+}
+
 // A custom exception for when our API server has a problem.
 class ApiException implements Exception {
   final String message;
@@ -29,12 +35,12 @@ class ApiService {
         Uri.parse('$_baseUrl/$endpoint'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(body),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 30));
       return response;
     } on SocketException {
       throw NoInternetException();
     } on TimeoutException {
-      throw NoInternetException();
+      throw ApiTimeoutException();
     } catch (e) {
       throw ApiException('An unexpected error occurred.');
     }
@@ -76,7 +82,7 @@ class ApiService {
     try {
       // Construct the full URL by combining the base URL and the endpoint
       final response = await http.get(Uri.parse('$_baseUrl/get-contact-info'))
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -88,7 +94,7 @@ class ApiService {
     } on SocketException {
       throw NoInternetException();
     } on TimeoutException {
-      throw NoInternetException();
+      throw ApiTimeoutException();
     } catch (e) {
       // If it's not one of our custom exceptions, re-throw it as a generic API exception
       if (e is ApiException || e is NoInternetException) rethrow;

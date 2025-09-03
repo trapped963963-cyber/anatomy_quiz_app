@@ -85,8 +85,10 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
 
     if (e is NoInternetException) {
       errorMessage = e.toString();
+    }
+    else if (e is ApiTimeoutException) {
+    errorMessage = e.toString();
     } 
-    // ## NEW: Catching the specific Device ID error ##
     else if (e is PlatformException) {
       currentFailCount++;
       errorMessage = 'حدث خطأ في قراءة بيانات الجهاز. الرجاء المحاولة مرة أخرى.';

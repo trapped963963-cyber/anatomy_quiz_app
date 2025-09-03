@@ -14,16 +14,18 @@ class PhoneInputScreen extends ConsumerStatefulWidget {
 }
 
 class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
+  late Future<String?> _initialPhoneFuture;
   String _phoneNumber = '';
   bool _isComplete = false;
 
   @override
   void initState() {
     super.initState();
-    _loadInitialData();
+    // We assign the Future in initState
+    _initialPhoneFuture = _loadInitialData();
   }
 
-  Future<void> _loadInitialData() async {
+  Future<String?> _loadInitialData() async {
     final prefs = await SharedPreferences.getInstance();
     final savedPhone = prefs.getString('onboarding_phone');
 
@@ -33,6 +35,7 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
         _isComplete = savedPhone.length == 10;
       });
     }
+    return savedPhone;
   }
 
   // ## NEW: Save data immediately on change ##
@@ -43,11 +46,11 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
     });
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('onboarding_phone', value);
+
   }
 
   void _onNext() {
     if (_isComplete) {
-      // No need to save to provider, just navigate
       context.push('/promo');
     }
   }
@@ -56,7 +59,21 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('خطوة 2 من 5')),
-      body: Padding(
+      body: FutureBuilder<String?>(
+        future: _initialPhoneFuture,
+        builder: (context, snapshot) {
+          // While waiting for the data from SharedPreferences, show a loader
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // Once the data is loaded, build the main UI
+          final initialPhone = snapshot.data ?? '';
+
+      
+      
+      
+        return Padding(
         padding: EdgeInsets.all(24.w),
         child: LayoutBuilder(  
           builder: (context, constraints) {
@@ -75,7 +92,7 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                   SizedBox(height: 30.h),
                   PhoneNumberInput(
                     initialValue: _phoneNumber,
-                    onValueChanged: _onPhoneChanged,
+                    onValueChanged: _onPhoneChanged ,
                     onCompleted: (number) {
                     },
                   ),            
@@ -91,7 +108,9 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
           );
           },
         ),
-      ),
+      );
+      }
+    ) 
     );
   }
 }
