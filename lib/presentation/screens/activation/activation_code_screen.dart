@@ -8,6 +8,7 @@ import 'package:anatomy_quiz_app/presentation/providers/providers.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/activation/activation_code_input.dart';
 import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
 import 'package:anatomy_quiz_app/data/models/user_progress.dart';
+import 'package:anatomy_quiz_app/core/utils/api_service.dart';
 
 class ActivationCodeScreen extends ConsumerStatefulWidget {
   const ActivationCodeScreen({super.key});
@@ -52,7 +53,6 @@ class _ActivationCodeScreenState extends ConsumerState<ActivationCodeScreen> {
         phoneNumber: phoneNumber,
         fingerprint: fingerprint,
       );
-
       final dbKey = await secureStorage.getDbKey();
       if (dbKey != null) {
         ref.read(encryptionServiceProvider).initialize(dbKey);
@@ -80,7 +80,15 @@ class _ActivationCodeScreenState extends ConsumerState<ActivationCodeScreen> {
           _isLoading = false;
         });
       }
-    } catch(e) {
+    }  
+    on ApiException catch (e) {
+      setState(() {
+        // Show a more specific message for API errors.
+        _errorText = 'لم يتم العثور على تفعيل لهذا الرقم. الرجاء التواصل مع قسم الدعم.';
+        _isLoading = false;
+      });
+    } 
+    catch(e) {
         setState(() {
         _errorText = 'فشل استرداد بيانات التفعيل. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.';
         _isLoading = false;
