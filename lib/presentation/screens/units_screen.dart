@@ -3,63 +3,91 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anatomy_quiz_app/presentation/providers/learning_path_provider.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/path/diagrams_carousel.dart';
-
 import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
+import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
+
 class UnitsScreen extends ConsumerWidget {
   const UnitsScreen({super.key});
+
+  // ## NEW: A predefined list of beautiful gradients ##
+  final List<Gradient> _unitGradients = const [
+    LinearGradient(
+      colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    LinearGradient(
+      colors: [Color(0xFFF2C94C), Color(0xFFF2994A)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    LinearGradient(
+      colors: [Color(0xFFB24592), Color(0xFFF15F79)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    LinearGradient(
+      colors: [Color(0xFF11998E), Color(0xFF38EF7D)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+  ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final unitsAsync = ref.watch(unitsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('مسار التعلم')),
+      // The AppBar is now simpler
+      appBar: AppBar(
+        title: const Text(''),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+      ),
       body: unitsAsync.when(
         data: (units) {
           return ListView.builder(
+            padding: EdgeInsets.zero,
             itemCount: units.length,
             itemBuilder: (context, index) {
               final unit = units[index];
-
-              // Now, instead of getting a list directly, we get an AsyncValue
-              // which can be in a loading, error, or data state.
               final diagramsAsync = ref.watch(diagramsWithProgressProvider(unit.id));
 
-              return Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w),
-                      child: Text(
-                        unit.title,
-                        style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold),
+              // ## THE FIX: The new Gradient Banner design ##
+              return Column(
+                children: [
+                  // This is the banner for the title
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
+                    decoration: BoxDecoration(
+                      // Cycle through our predefined gradients
+                      gradient: _unitGradients[index % _unitGradients.length],
+                    ),
+                    child: Text(
+                      unit.title,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 24.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white, // White text for contrast
+                        shadows: [
+                          Shadow(blurRadius: 4, color: Colors.black.withOpacity(0.3))
+                        ]
                       ),
                     ),
-                    SizedBox(height: 12.h),
-
-                    // We use .when() to build the correct UI for each state.
-                    diagramsAsync.when(
-                      // While loading, show a placeholder.
-                      loading: () => SizedBox(
-                        height: 250.h,
-                        child: const AppLoadingIndicator(),
-                      ),
-                      // If there's an error, show an error message.
-                      error: (e, st) => SizedBox(
-                        height: 250.h,
-                        child: Center(child: Text('لا يمكن تحميل الرسوم')),
-                      ),
-                      // Only when data is ready, we build the carousel.
+                  ),
+                  // The carousel sits below the banner
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16.h),
+                    child: diagramsAsync.when(
+                      loading: () => SizedBox(height: 250.h, child: const AppLoadingIndicator()),
+                      error: (e, st) => SizedBox(height: 250.h, child: Center(child: Text('لا يمكن تحميل الرسوم'))),
                       data: (diagramsWithProgress) {
-                        // The calculation and widget building now happens here.
                         int initialIndex = diagramsWithProgress.indexWhere(
-                          (d) => d.progress == null || d.progress!.isCompleted == false
+                          (d) => d.progress == null || d.progress!.isCompleted == false,
                         );
-                        if (initialIndex == -1) {
-                          initialIndex = 0;
-                        }
+                        if (initialIndex == -1) initialIndex = 0;
 
                         return DiagramsCarousel(
                           diagrams: diagramsWithProgress,
@@ -67,8 +95,9 @@ class UnitsScreen extends ConsumerWidget {
                         );
                       },
                     ),
-                  ],
-                ),
+                  ),
+                  const Divider(height: 1),
+                ],
               );
             },
           );

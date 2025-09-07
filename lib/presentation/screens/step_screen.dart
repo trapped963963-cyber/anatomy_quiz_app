@@ -152,6 +152,7 @@ class _StepScreenState extends ConsumerState<StepScreen> {
                 // We use context.pop() here from go_router, which is aware of the navigation stack.
                 Navigator.of(dialogContext).pop();
                 context.go('/home');
+                context.push('/units');
                 context.push('/level/${widget.levelId}');
               },
             ),

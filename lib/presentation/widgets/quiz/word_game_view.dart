@@ -64,7 +64,7 @@ class _WordGameViewState extends ConsumerState<WordGameView> {
       final int maxLetters = ((constraints.maxWidth * 0.95) / (boxSize + spacing)).floor();
       final title = widget.question.correctLabel.title;
       // ## THE FIX: Create a centralized list of excluded words ##
-      const List<String> excludedWords = ['أو', 'او', 'إلى' , 'الى'];
+      const List<String> excludedWords = ['أو', 'او', 'إلى' , 'الى' , 'من' , 'في', 'عن' , 'على' ];
 
       final words = title.split(' ').where((word) {
         final trimmedWord = word.trim();
