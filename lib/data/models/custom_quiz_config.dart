@@ -25,7 +25,7 @@ class CustomQuizConfig {
 
   int get timeInMinutes {
      switch (difficulty) {
-      case QuizDifficulty.veryEasy: return 1;
+      case QuizDifficulty.veryEasy: return 5;
       case QuizDifficulty.easy: return 10;
       case QuizDifficulty.medium: return 15;
       case QuizDifficulty.difficult: return 20;

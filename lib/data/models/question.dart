@@ -26,4 +26,17 @@ class Question {
     required this.choices,
     this.randomIndex,
   });
+
+  Question copyWith({
+  int? randomIndex,
+  }) {
+  return Question(
+    questionType: this.questionType,
+    diagramId: this.diagramId,
+    correctLabel: this.correctLabel,
+    questionText: this.questionText,
+    choices: this.choices,
+    randomIndex: randomIndex ?? this.randomIndex,
+  );
+}
 }

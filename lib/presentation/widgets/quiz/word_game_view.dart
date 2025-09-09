@@ -8,6 +8,7 @@ import 'package:anatomy_quiz_app/presentation/providers/providers.dart';
 import 'package:anatomy_quiz_app/core/utils/sound_service.dart';
 import 'package:flutter/services.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
+
 class WordGameView extends ConsumerStatefulWidget {
   final Question question;
   final QuestionMode mode;
@@ -53,7 +54,28 @@ class _WordGameViewState extends ConsumerState<WordGameView> {
     }
   }
 
+  bool _isArabic(String text) {
+    if (text.isEmpty) return true; // Default to Arabic for empty strings
 
+    // Loop through the string to find the first character that is a letter.
+    for (int i = 0; i < text.length; i++) {
+      final charCode = text.codeUnitAt(i);
+
+      // Check if the character is an Arabic letter
+      if (charCode >= 0x0600 && charCode <= 0x06FF) {
+        return true;
+      }
+
+      // Check if the character is a standard English letter (a-z, A-Z)
+      if ((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122)) {
+        return false;
+      }
+    }
+
+    // If no definitive letter is found (e.g., the string is just numbers),
+    // default to LTR as numbers are typically read left-to-right.
+    return false;
+  }
   void _setupGame(BoxConstraints constraints) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -64,7 +86,7 @@ class _WordGameViewState extends ConsumerState<WordGameView> {
       final int maxLetters = ((constraints.maxWidth * 0.95) / (boxSize + spacing)).floor();
       final title = widget.question.correctLabel.title;
       // ## THE FIX: Create a centralized list of excluded words ##
-      const List<String> excludedWords = ['أو', 'او', 'إلى' , 'الى' , 'من' , 'في', 'عن' , 'على' ];
+      const List<String> excludedWords = ['أو', 'او', 'إلى' , 'الى' , 'من' , 'في', 'عن' , 'على','حول'];
 
       final words = title.split(' ').where((word) {
         final trimmedWord = word.trim();
@@ -92,7 +114,7 @@ class _WordGameViewState extends ConsumerState<WordGameView> {
         chosenIndex = words.indexOf(longestWord);
         wordToGuess = longestWord.substring(longestWord.length - maxLetters);
         final String wordStem = longestWord.substring(0, longestWord.length - maxLetters);
-        toreplace = '$wordStem${'_' * wordToGuess.length}';
+        toreplace = '$wordStem${'-' * wordToGuess.length}';
       }
 
       List<String> displayWords = List.from(words);
@@ -167,40 +189,43 @@ class _WordGameViewState extends ConsumerState<WordGameView> {
         children: [
           widget.buildQuestionContainer(_displayQuestionText),
           SizedBox(height: 20.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(_answerSlots.length, (index) {
-                final String currentChar = _answerSlots[index];
-                Color boxColor;
-                if (_isAnswered && _letterFeedback.length == _answerSlots.length) {
-                  boxColor = _letterFeedback[index]! ? AppColors.correct : AppColors.incorrect;
-                } else {
-                  boxColor = currentChar.isNotEmpty ? Colors.blue.shade100 : Colors.grey.shade200;
-                }
-                return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 2.w),
-                  child: GestureDetector(
-                    onTap: () { if (currentChar.isNotEmpty) { setState(() { _letterBank.add(_answerSlots[index]); _answerSlots[index] = ''; }); } },
-                    child: Container(
-                      width: 40.r, height: 40.r,
-                      decoration: BoxDecoration(
-                        color: boxColor,
-                        border: Border.all(color: Colors.grey.shade400),
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                      child: Center(
-                        child: Text(
-                          currentChar, 
-                          style: TextStyle(
-                            fontSize: 15.sp, fontWeight: FontWeight.bold,
-                            color: _isAnswered ? Colors.white : AppColors.textPrimary,
-                          ),
-                        )
+          Directionality(
+            textDirection: _isArabic(_wordToGuess) ? TextDirection.rtl : TextDirection.ltr,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(_answerSlots.length, (index) {
+                  final String currentChar = _answerSlots[index];
+                  Color boxColor;
+                  if (_isAnswered && _letterFeedback.length == _answerSlots.length) {
+                    boxColor = _letterFeedback[index]! ? AppColors.correct : AppColors.incorrect;
+                  } else {
+                    boxColor = currentChar.isNotEmpty ? Colors.blue.shade100 : Colors.grey.shade200;
+                  }
+                  return Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 2.w),
+                    child: GestureDetector(
+                      onTap: () { if (currentChar.isNotEmpty) { setState(() { _letterBank.add(_answerSlots[index]); _answerSlots[index] = ''; }); } },
+                      child: Container(
+                        width: 40.r, height: 40.r,
+                        decoration: BoxDecoration(
+                          color: boxColor,
+                          border: Border.all(color: Colors.grey.shade400),
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        child: Center(
+                          child: Text(
+                            currentChar, 
+                            style: TextStyle(
+                              fontSize: 15.sp, fontWeight: FontWeight.bold,
+                              color: _isAnswered ? Colors.white : AppColors.textPrimary,
+                            ),
+                          )
+                        ),
                       ),
                     ),
-                  ),
-                );
-            }),
+                  );
+              }),
+            ),
           ),
           SizedBox(height: 24.h),
           if (!_isAnswered)

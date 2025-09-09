@@ -48,10 +48,20 @@ class QuizNotifier extends StateNotifier<QuizState> {
 
     List<Question> initialQuestions = _generateInitialQuestions(newLabel, levelId, allLearnedLabels);
     List<Question> reinforcementQuestions = _generateReinforcementQuestions(previousLabels, levelId, allLearnedLabels);
-    reinforcementQuestions.addAll(initialQuestions);
+    
+
+    for (var question in initialQuestions) {
+      if (question.questionType == QuestionType.askToWriteTitle) {
+        reinforcementQuestions.add(question.copyWith(randomIndex: Random().nextInt(100)));
+      } else {
+        reinforcementQuestions.add(question);
+      }
+    }
+
     reinforcementQuestions.shuffle();
     List<Question> finalQuestions = [...initialQuestions, ...reinforcementQuestions];
     
+
     // Question Cap Logic
     if (finalQuestions.length > 50) {
       finalQuestions = [...initialQuestions, ...reinforcementQuestions.sublist(0, 46)];

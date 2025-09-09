@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:anatomy_quiz_app/data/models/models.dart';
 import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:anatomy_quiz_app/presentation/providers/user_progress_provider.dart'; // <-- ADD THIS IMPORT
-
+import 'package:anatomy_quiz_app/presentation/providers/user_progress_provider.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 class DiagramCard extends ConsumerWidget {
   final DiagramWithProgress diagramWithProgress;
@@ -45,10 +45,13 @@ class DiagramCard extends ConsumerWidget {
               top: 16.h,
               left: 16.w,
               right: 16.w,
-              child: Text(
+              child: AutoSizeText( // <-- Changed from Text
                 diagram.title,
+                textAlign: TextAlign.start, // Align to the start (right in RTL)
+                maxLines: 2, // Allow the title to wrap to a second line
+                minFontSize: 16, // The smallest the text is allowed to get
                 style: TextStyle(
-                  fontSize: 22.sp,
+                  fontSize: 22.sp, // This is now the maximum font size
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                   shadows: [Shadow(blurRadius: 4, color: Colors.black.withOpacity(0.7))],

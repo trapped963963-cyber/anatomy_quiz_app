@@ -3,27 +3,54 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anatomy_quiz_app/presentation/providers/search_provider.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/path/diagram_card.dart';
-import 'package:anatomy_quiz_app/data/models/diagram_with_progress.dart';
+import 'package:anatomy_quiz_app/data/models/models.dart';
 
-class SearchScreen extends ConsumerWidget {
+// ## FIX 1: Convert to a ConsumerStatefulWidget ##
+class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SearchScreen> createState() => _SearchScreenState();
+}
+
+class _SearchScreenState extends ConsumerState<SearchScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    // ## FIX 2: Clean up when the screen is removed ##
+
+    // A) Hide the keyboard to prevent overflow on the previous screen.
+    _focusNode.unfocus();
+    
+    // B) Reset the search query provider to clear the old results.
+    // We use a post-frame callback to safely update the provider during disposal.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(searchQueryProvider.notifier).state = '';
+    });
+    
+    _searchController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final searchResults = ref.watch(searchResultsProvider);
     final searchQuery = ref.watch(searchQueryProvider);
 
     return Scaffold(
       appBar: AppBar(
-        // The Search Bar
         title: TextField(
+          controller: _searchController,
+          focusNode: _focusNode,
           autofocus: true,
           decoration: const InputDecoration(
-            hintText: 'ابحث هنا...',
+            hintText: 'ابحث عن رسم بياني...',
             border: InputBorder.none,
           ),
           onChanged: (value) {
-            // Update the search query provider as the user types
             ref.read(searchQueryProvider.notifier).state = value;
           },
         ),
@@ -37,12 +64,10 @@ class SearchScreen extends ConsumerWidget {
                 if (diagrams.isEmpty) {
                   return const Center(child: Text('لم يتم العثور على نتائج.'));
                 }
-                // Display the results as a simple vertical list of cards
                 return ListView.builder(
                   padding: EdgeInsets.all(16.w),
                   itemCount: diagrams.length,
                   itemBuilder: (context, index) {
-                    // We need to create a DiagramWithProgress object for the card
                     final diagramWithProgress = DiagramWithProgress(diagram: diagrams[index]);
                     return Padding(
                       padding: EdgeInsets.only(bottom: 16.h),

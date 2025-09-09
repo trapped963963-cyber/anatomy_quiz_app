@@ -96,7 +96,8 @@ class _NameInputScreenState extends ConsumerState<NameInputScreen> {
                           SizedBox(height: 30.h),
                           TextFormField(
                             controller: _nameController,
-                            decoration: const InputDecoration(labelText: 'الاسم', border: OutlineInputBorder()),
+                            maxLength: 15,
+                            decoration: const InputDecoration(labelText: 'الاسم', border: OutlineInputBorder(),counterText: "", ),
                             validator: (value) {
                               if (value == null || value.trim().length < 2) return 'الرجاء إدخال اسم لا يقل عن حرفين';
                               if (value.contains(RegExp(r'[0-9]'))) return 'لا يمكن أن يحتوي الاسم على أرقام';
