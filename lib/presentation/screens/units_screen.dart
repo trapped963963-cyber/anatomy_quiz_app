@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anatomy_quiz_app/presentation/providers/learning_path_provider.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/path/diagrams_carousel.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
-import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
 
 class UnitsScreen extends ConsumerWidget {
   const UnitsScreen({super.key});
