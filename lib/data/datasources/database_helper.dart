@@ -190,27 +190,98 @@ class DatabaseHelper {
 
  
 
-Future<Map<String, int>> getLabelCounts(List<int> diagramIds) async {
-  if (diagramIds.isEmpty) return {'total': 0, 'withDef': 0};
+  Future<Map<String, int>> getLabelCounts(List<int> diagramIds) async {
+    if (diagramIds.isEmpty) return {'total': 0, 'withDef': 0};
+    final db = await database;
+    final placeholders = ('?' * diagramIds.length).split('').join(',');
+
+    // Query 1: Get the total number of labels.
+    final totalResult = await db.rawQuery(
+      'SELECT COUNT(*) FROM labels WHERE diagram_id IN ($placeholders)',
+      diagramIds,
+    );
+    final totalCount = Sqflite.firstIntValue(totalResult) ?? 0;
+
+    // Query 2: Get the count of labels that have a non-empty definition.
+    // We check for NULL, empty string '', and strings with only spaces ' '.
+    final withDefResult = await db.rawQuery(
+      "SELECT COUNT(*) FROM labels WHERE diagram_id IN ($placeholders) AND definition IS NOT NULL AND TRIM(definition) != ''",
+      diagramIds,
+    );
+    final withDefCount = Sqflite.firstIntValue(withDefResult) ?? 0;
+
+    return {'total': totalCount, 'withDef': withDefCount};
+  }
+
+/// 1. Performs a search on your 'search_index' table for multiple keywords.
+Future<List<int>> searchDiagramIds(String query) async {
+  final trimmedQuery = query.trim().toLowerCase();
+  if (trimmedQuery.isEmpty) return [];
   final db = await database;
-  final placeholders = ('?' * diagramIds.length).split('').join(',');
 
-  // Query 1: Get the total number of labels.
-  final totalResult = await db.rawQuery(
-    'SELECT COUNT(*) FROM labels WHERE diagram_id IN ($placeholders)',
-    diagramIds,
-  );
-  final totalCount = Sqflite.firstIntValue(totalResult) ?? 0;
+  // ## THE FIX: Split the search query into individual keywords ##
+  // This RegExp splits the string by one or more whitespace characters,
+  // automatically handling single spaces, multiple spaces, tabs, etc.
+  final keywords = trimmedQuery.split(RegExp(r'\s+'));
+  if (keywords.isEmpty) return [];
 
-  // Query 2: Get the count of labels that have a non-empty definition.
-  // We check for NULL, empty string '', and strings with only spaces ' '.
-  final withDefResult = await db.rawQuery(
-    "SELECT COUNT(*) FROM labels WHERE diagram_id IN ($placeholders) AND definition IS NOT NULL AND TRIM(definition) != ''",
-    diagramIds,
-  );
-  final withDefCount = Sqflite.firstIntValue(withDefResult) ?? 0;
+  // This will hold the diagram IDs that match ALL keywords.
+  Set<int>? matchingIds;
 
-  return {'total': totalCount, 'withDef': withDefCount};
+  // Loop through each keyword to progressively filter the results.
+  for (final keyword in keywords) {
+    final List<Map<String, dynamic>> maps = await db.query(
+      'search_index',
+      distinct: true,
+      columns: ['diagram_id'],
+      where: 'keyword LIKE ?',
+      whereArgs: ['%$keyword%'],
+    );
+
+    // Convert the query result to a Set for efficient filtering.
+    final currentIds = maps.map((map) => map['diagram_id'] as int).toSet();
+
+    if (matchingIds == null) {
+      // For the first keyword, this is our starting set.
+      matchingIds = currentIds;
+    } else {
+      // For subsequent keywords, find the intersection.
+      // This keeps only the IDs that were also found in the previous search.
+      matchingIds.retainAll(currentIds);
+    }
+
+    // If at any point our set becomes empty, no diagram matches all keywords.
+    if (matchingIds.isEmpty) return [];
+  }
+
+  // Return the final list of IDs that matched all keywords.
+  return matchingIds?.toList() ?? [];
 }
+  /// 2. Fetches full diagram data for a given list of IDs in a single, efficient query.
+  Future<List<AnatomicalDiagram>> getDiagramsByIds(List<int> ids) async {
+    if (ids.isEmpty) return [];
+    final db = await database;
+    final placeholders = ('?' * ids.length).split('').join(',');
 
+    final List<Map<String, dynamic>> maps = await db.query(
+      'diagrams',
+      where: 'id IN ($placeholders)',
+      whereArgs: ids,
+    );
+
+    // We still decrypt the titles and get the total steps for each diagram
+    final diagrams = await Future.wait(maps.map((map) async {
+      final diagram = AnatomicalDiagram.fromMap(map);
+      final count = await getLabelsCountForDiagram(diagram.id);
+      return diagram.copyWith(
+        title: _encryptionService.decrypt(diagram.title),
+        totalSteps: count,
+      );
+    }));
+
+    // The database returns items in an arbitrary order, so we need to
+    // re-sort them to match the order from our original search results.
+    diagrams.sort((a, b) => ids.indexOf(a.id).compareTo(ids.indexOf(b.id)));
+    return diagrams;
+  }
 }
