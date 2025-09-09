@@ -9,6 +9,27 @@ class UserProgressNotifier extends StateNotifier<UserProgress> {
 
   UserProgressNotifier(this._ref) : super(const UserProgress.initial());
 
+  // Add this new method inside UserProgressNotifier
+
+  Future<void> masterLevel(int levelId) async {
+    final dbHelper = _ref.read(databaseHelperProvider);
+    final totalSteps = await dbHelper.getLabelsCountForDiagram(levelId);
+
+    // Create a new stat object that marks the level as fully complete.
+    final newStat = LevelStat(
+      levelId: levelId,
+      completedSteps: totalSteps,
+      isCompleted: true,
+      lastVisited: DateTime.now(),
+    );
+
+    await dbHelper.updateLevelStat(newStat);
+
+    final updatedStats = Map<int, LevelStat>.from(state.levelStats);
+    updatedStats[levelId] = newStat;
+    state = state.copyWith(levelStats: updatedStats);
+  }
+
   Future<void> loadInitialData() async {
     final prefs = await SharedPreferences.getInstance();
     final dbHelper = _ref.read(databaseHelperProvider);

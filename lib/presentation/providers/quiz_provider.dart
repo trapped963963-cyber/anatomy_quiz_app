@@ -35,6 +35,48 @@ class QuizNotifier extends StateNotifier<QuizState> {
   final Ref _ref;
   QuizNotifier(this._ref) : super(QuizState());
 
+
+  Future<void> generateFinalChallengeQuiz(int levelId) async {
+    final dbHelper = _ref.read(databaseHelperProvider);
+    final allLabelsForLevel = await dbHelper.getLabelsForDiagram(levelId);
+    if (allLabelsForLevel.isEmpty) {
+      state = QuizState(questions: []);
+      return;
+    }
+
+    // 1. Create one question for each label in the diagram.
+    List<Question> challengeQuestions = [];
+    for (var label in allLabelsForLevel) {
+      // We'll create a random MCQ question for each label.
+      // We can make this more complex later if needed.
+      final randomType = [
+        QuestionType.askForTitle,
+        QuestionType.askForNumber,
+        QuestionType.askFromDef,
+      ][Random().nextInt(3)];
+
+      if (randomType == QuestionType.askFromDef && label.definition.trim().isEmpty) {
+        // Fallback if the label has no definition
+        challengeQuestions.add(_createMcq(label, allLabelsForLevel, QuestionType.askForTitle, levelId));
+      } else {
+        challengeQuestions.add(_createMcq(label, allLabelsForLevel, randomType, levelId));
+      }
+    }
+    challengeQuestions.shuffle();
+
+    // 2. Add the final, comprehensive matching question at the end.
+    final matchingQuestion = Question(
+      questionType: QuestionType.matching,
+      diagramId: levelId,
+      correctLabel: allLabelsForLevel.first,
+      questionText: 'للإتقان، قم بمطابقة جميع الأجزاء.',
+      choices: allLabelsForLevel,
+    );
+    challengeQuestions.add(matchingQuestion);
+
+    state = QuizState(questions: challengeQuestions);
+  }
+
   Future<void> generateQuizForStep(int levelId, int stepNumber) async {
     final dbHelper = _ref.read(databaseHelperProvider);
     final allLabelsForLevel = await dbHelper.getLabelsForDiagram(levelId);

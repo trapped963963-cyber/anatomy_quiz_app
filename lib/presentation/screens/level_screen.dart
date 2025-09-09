@@ -10,10 +10,35 @@ import 'package:anatomy_quiz_app/data/models/models.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/quiz/diagram_widget.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
+import 'package:anatomy_quiz_app/presentation/widgets/path/final_challenge_island.dart';
 
 class LevelScreen extends ConsumerWidget {
   final int levelId;
   const LevelScreen({super.key, required this.levelId});
+
+  void _showChallengeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('🌟 تحدي الإتقان'),
+        content: const Text('هذا اختبار شامل لكل الخطوات في هذا الدرس. إذا أجبت على جميع الأسئلة بشكل صحيح، فسيتم اعتبار الدرس مكتملاً!'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('رجوع'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              // Navigate to the quiz with a special step number for the challenge
+              context.push('/step/$levelId/-1');
+            },
+            child: const Text('ابدأ التحدي'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -42,8 +67,19 @@ class LevelScreen extends ConsumerWidget {
               Expanded(
                 child: ListView.builder(
                 padding: EdgeInsets.symmetric(vertical: 30.h, horizontal: 16.w),
-                itemCount: diagram.labels.length,
+                itemCount: diagram.labels.length + 1,
                 itemBuilder: (context, index) {
+                  if (index == diagram.labels.length) {
+                    return SizedBox(
+                      height: 150.h,
+                      child: Center(
+                        child: FinalChallengeIsland(
+                          isUnlocked: true,
+                          onTap: () => _showChallengeDialog(context),
+                        ),
+                      ),
+                    );
+                  }
                   final label = diagram.labels[index];
                   final stepNumber = index + 1;
                             

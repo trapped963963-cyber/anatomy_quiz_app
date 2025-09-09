@@ -3,9 +3,11 @@ import 'package:confetti/confetti.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anatomy_quiz_app/data/models/models.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:anatomy_quiz_app/presentation/providers/user_progress_provider.dart';
 
-// It's now a StatefulWidget to manage the ConfettiController
-class StepEndScreen extends StatefulWidget {
+
+class StepEndScreen extends ConsumerStatefulWidget {
   final int levelId;
   final int stepNumber;
   final int totalCorrect;
@@ -22,10 +24,10 @@ class StepEndScreen extends StatefulWidget {
   });
 
   @override
-  State<StepEndScreen> createState() => _StepEndScreenState();
+  ConsumerState<StepEndScreen> createState() => _StepEndScreenState();
 }
 
-class _StepEndScreenState extends State<StepEndScreen> {
+class _StepEndScreenState extends ConsumerState<StepEndScreen> {
   late ConfettiController _confettiController;
 
   @override
@@ -114,6 +116,7 @@ class _StepEndScreenState extends State<StepEndScreen> {
                           },
                         );
                       } else {
+                        ref.read(userProgressProvider.notifier).masterLevel(widget.levelId);
                         context.pushReplacement('/step-complete/${widget.levelId}/${widget.stepNumber}');
                       }
                     },

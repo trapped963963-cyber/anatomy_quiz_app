@@ -24,9 +24,12 @@ class _StepScreenState extends ConsumerState<StepScreen> {
   void initState() {
     super.initState();
     _pageController = PageController();
-    // Use a post-frame callback to safely interact with the provider
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(quizProvider.notifier).generateQuizForStep(widget.levelId, widget.stepNumber);
+      if (widget.stepNumber == -1) {
+        ref.read(quizProvider.notifier).generateFinalChallengeQuiz(widget.levelId);
+      } else {
+        ref.read(quizProvider.notifier).generateQuizForStep(widget.levelId, widget.stepNumber);
+      }
     });
   }
 
@@ -45,18 +48,16 @@ class _StepScreenState extends ConsumerState<StepScreen> {
     ref.listen<QuizState>(quizProvider, (previous, next) {
       if (next.isFinished) {
 
-      // --- START: NEW DE-DUPLICATION LOGIC ---
-      final seenKeys = <String>{};
-      final uniqueWronglyAnswered = <Question>[];
-      for (var question in next.wronglyAnswered) {
-        // Create the same unique key we used for the ValueKey
-        final key = '${question.correctLabel.id}_${question.questionType.toString()}';
-        // Set.add() returns true if the item was added (i.e., it wasn't already in the set)
-        if (seenKeys.add(key)) {
-          uniqueWronglyAnswered.add(question);
+        final seenKeys = <String>{};
+        final uniqueWronglyAnswered = <Question>[];
+        for (var question in next.wronglyAnswered) {
+          // Create the same unique key we used for the ValueKey
+          final key = '${question.correctLabel.id}_${question.questionType.toString()}';
+          // Set.add() returns true if the item was added (i.e., it wasn't already in the set)
+          if (seenKeys.add(key)) {
+            uniqueWronglyAnswered.add(question);
+          }
         }
-      }
-      // --- END: NEW DE-DUPLICATION LOGIC ---
 
         // Navigate to the end screen with results
         final totalQuestions = next.questions.length;
