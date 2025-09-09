@@ -131,6 +131,10 @@ class AppRouter {
           return StepCompleteScreen(levelId: levelId, stepNumber: stepNumber);
         },
       ),
+      GoRoute(
+        path: '/search',
+        builder: (context, state) => const SearchScreen(),
+      ),
     ],
   );
 }

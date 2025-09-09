@@ -86,6 +86,13 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                   icon: Icons.quiz,
                   onTap: () => context.push('/quiz/select-content'),
                 ),
+                 SizedBox(height: 10.h),
+                _buildSecondaryButton(
+                  context,
+                  title: 'ابحث عن رسم', // Search for a diagram
+                  icon: Icons.search,
+                  onTap: () => context.push('/search'),
+                ),
               ],
             ),
           ),
