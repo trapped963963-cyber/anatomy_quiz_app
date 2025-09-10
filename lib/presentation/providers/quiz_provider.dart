@@ -35,6 +35,10 @@ class QuizNotifier extends StateNotifier<QuizState> {
   final Ref _ref;
   QuizNotifier(this._ref) : super(QuizState());
 
+  void reset() {
+    // Resets the quiz back to its initial, empty state.
+    state = QuizState();
+  }
 
   Future<void> generateFinalChallengeQuiz(int levelId) async {
     final dbHelper = _ref.read(databaseHelperProvider);

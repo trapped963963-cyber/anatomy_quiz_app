@@ -45,36 +45,50 @@ class _StepScreenState extends ConsumerState<StepScreen> {
     final quizNotifier = ref.read(quizProvider.notifier);
     final diagramAsync = ref.watch(diagramWithLabelsProvider(widget.levelId));
 
+    // Inside your _StepScreenState's build method...
+
     ref.listen<QuizState>(quizProvider, (previous, next) {
       if (next.isFinished) {
-
+        
+        // De-duplicate the list of wrongly answered questions first.
         final seenKeys = <String>{};
         final uniqueWronglyAnswered = <Question>[];
         for (var question in next.wronglyAnswered) {
-          // Create the same unique key we used for the ValueKey
           final key = '${question.correctLabel.id}_${question.questionType.toString()}';
-          // Set.add() returns true if the item was added (i.e., it wasn't already in the set)
           if (seenKeys.add(key)) {
             uniqueWronglyAnswered.add(question);
           }
         }
 
-        // Navigate to the end screen with results
-        final totalQuestions = next.questions.length;
-        final totalWrong = uniqueWronglyAnswered.length;
-        final totalCorrect = totalQuestions - totalWrong;
+        // ## THE FIX: Check which type of quiz just ended ##
+        if (widget.stepNumber == -1) {
+          // This was a Final Challenge. Navigate to the new ChallengeEndScreen.
+          context.pushReplacement(
+            '/challenge-end',
+            extra: {
+              'levelId': widget.levelId,
+              'incorrectAnswers': uniqueWronglyAnswered,
+              'totalQuestions': next.questions.length,
+            },
+          );
+        } else {
+          // This was a regular step. Navigate to the StepEndScreen as before.
+          final totalQuestions = next.questions.length;
+          final totalWrong = uniqueWronglyAnswered.length;
+          // Note: The total correct should be based on the original wrong answers count for an accurate score.
+          final totalCorrect = totalQuestions - next.wronglyAnswered.length; 
 
-        // Use context.pushReplacement to prevent going back to the quiz
-        context.pushReplacement(
-          '/step-end',
-          extra: {
-            'levelId': widget.levelId,
-            'stepNumber': widget.stepNumber,
-            'totalCorrect': totalCorrect,
-            'totalWrong': totalWrong,
-            'wronglyAnswered': uniqueWronglyAnswered,
-          },
-        );
+          context.pushReplacement(
+            '/step-end',
+            extra: {
+              'levelId': widget.levelId,
+              'stepNumber': widget.stepNumber,
+              'totalCorrect': totalCorrect,
+              'totalWrong': totalWrong,
+              'wronglyAnswered': uniqueWronglyAnswered,
+            },
+          );
+        }
       }
     });
 

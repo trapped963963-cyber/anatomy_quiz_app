@@ -21,7 +21,6 @@ class ChallengeEndScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final int correctAnswers = totalQuestions - incorrectAnswers.length;
     final bool isPerfectScore = incorrectAnswers.isEmpty;
-
     // Automatically mark the level as mastered if the score is perfect.
     if (isPerfectScore) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -57,8 +56,8 @@ class ChallengeEndScreen extends ConsumerWidget {
               padding: EdgeInsets.symmetric(horizontal: 24.w),
               child: ElevatedButton(
                 onPressed: () {
-                  //fix this
-                  context.go('/level/$levelId');
+                  context.go('home');
+                  context.push('/level/$levelId');
                 },
                 child: const Text('العودة للدرس'),
               ),

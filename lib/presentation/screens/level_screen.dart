@@ -107,7 +107,11 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
                         child: Center(
                           child: FinalChallengeIsland(
                             isUnlocked: true,
-                            onTap: () => _showChallengeDialog(context),
+                            onTap: () {
+                              // ## THE FIX: Reset the provider here too ##
+                              ref.read(quizProvider.notifier).reset();
+                              _showChallengeDialog(context);
+                            },
                           ),
                         ),
                       );
@@ -156,7 +160,11 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
                         stepNumber: stepNumber,
                         title: label.title,
                         status: status,
-                        onTap: () => context.push('/step/${widget.levelId}/$stepNumber'),
+                        onTap: () {
+                          // ## THE FIX: Reset the provider before starting a new quiz ##
+                          ref.read(quizProvider.notifier).reset();
+                          context.push('/step/${widget.levelId}/$stepNumber');
+                        },
                       ),
                     );
                               
