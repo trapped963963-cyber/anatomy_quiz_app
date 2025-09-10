@@ -6,14 +6,14 @@ import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:anatomy_quiz_app/core/routing/app_router.dart';
 import 'package:anatomy_quiz_app/core/constants/app_strings.dart';
-import 'package:flutter_windowmanager/flutter_windowmanager.dart'; // ## ADD THIS IMPORT ##
+import 'package:screen_protector/screen_protector.dart';
 
 
-
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
-  FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+  await ScreenProtector.preventScreenshotOn();
+
 
   runApp(
     const ProviderScope(
