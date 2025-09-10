@@ -21,3 +21,4 @@ export 'review_step_screen.dart';
 export 'units_screen.dart';
 export 'step_complete_screen.dart';
 export 'search_screen.dart';
+export './challenge_end_screen.dart';

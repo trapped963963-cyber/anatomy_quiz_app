@@ -135,6 +135,18 @@ class AppRouter {
         path: '/search',
         builder: (context, state) => const SearchScreen(),
       ),
+
+      GoRoute(
+        path: '/challenge-end',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return ChallengeEndScreen(
+            levelId: extra['levelId'],
+            incorrectAnswers: extra['incorrectAnswers'],
+            totalQuestions: extra['totalQuestions'],
+          );
+        },
+      ),
     ],
   );
 }

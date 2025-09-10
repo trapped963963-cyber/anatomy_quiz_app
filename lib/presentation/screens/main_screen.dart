@@ -8,6 +8,7 @@ import 'package:anatomy_quiz_app/presentation/providers/service_providers.dart';
 import 'package:anatomy_quiz_app/presentation/providers/user_progress_provider.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/settings_icon_button.dart';
 import 'package:flutter/services.dart';
+import 'package:anatomy_quiz_app/presentation/providers/search_provider.dart';
 
 
 class MainScreen extends ConsumerStatefulWidget {
@@ -91,7 +92,11 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                   context,
                   title: 'ابحث عن رسم', // Search for a diagram
                   icon: Icons.search,
-                  onTap: () => context.push('/search'),
+                  onTap: () {
+                    // ## THE FIX: Reset the search state before navigating ##
+                    ref.read(searchQueryProvider.notifier).state = '';
+                    context.push('/search');
+                  },
                 ),
               ],
             ),

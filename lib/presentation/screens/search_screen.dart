@@ -17,24 +17,19 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
 
-  @override
-  void dispose() {
-    // ## FIX 2: Clean up when the screen is removed ##
+// Inside your _SearchScreenState class...
 
-    // A) Hide the keyboard to prevent overflow on the previous screen.
-    _focusNode.unfocus();
-    
-    // B) Reset the search query provider to clear the old results.
-    // We use a post-frame callback to safely update the provider during disposal.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(searchQueryProvider.notifier).state = '';
-    });
-    
-    _searchController.dispose();
-    _focusNode.dispose();
-    super.dispose();
-  }
+@override
+void dispose() {
+  // ## THE FIX: Hide the keyboard to prevent overflow on the MainScreen ##
+  _focusNode.unfocus();
 
+  // We no longer need to reset the provider here, as it's handled by the MainScreen.
+
+  _searchController.dispose();
+  _focusNode.dispose();
+  super.dispose();
+}
   @override
   Widget build(BuildContext context) {
     final searchResults = ref.watch(searchResultsProvider);
