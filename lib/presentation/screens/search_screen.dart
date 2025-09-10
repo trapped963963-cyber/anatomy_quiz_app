@@ -35,46 +35,54 @@ void dispose() {
     final searchResults = ref.watch(searchResultsProvider);
     final searchQuery = ref.watch(searchQueryProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: TextField(
-          controller: _searchController,
-          focusNode: _focusNode,
-          autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'ابحث عن رسم بياني...',
-            border: InputBorder.none,
-          ),
-          onChanged: (value) {
-            ref.read(searchQueryProvider.notifier).state = value;
-          },
-        ),
-      ),
-      body: searchQuery.isEmpty
-          ? const Center(child: Text('ابدأ الكتابة للبحث.'))
-          : searchResults.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, st) => Center(child: Text('خطأ: $e')),
-              data: (diagrams) {
-                if (diagrams.isEmpty) {
-                  return const Center(child: Text('لم يتم العثور على نتائج.'));
-                }
-                return ListView.builder(
-                  padding: EdgeInsets.all(16.w),
-                  itemCount: diagrams.length,
-                  itemBuilder: (context, index) {
-                    final diagramWithProgress = DiagramWithProgress(diagram: diagrams[index]);
-                    return Padding(
-                      padding: EdgeInsets.only(bottom: 16.h),
-                      child: SizedBox(
-                        height: 250.h,
-                        child: DiagramCard(diagramWithProgress: diagramWithProgress),
-                      ),
-                    );
-                  },
-                );
-              },
+    return PopScope(
+          canPop: true,
+          onPopInvokedWithResult: (bool didPop, dynamic result) {
+    if (!didPop) {
+      _focusNode.unfocus();
+    }
+    },
+      child: Scaffold(
+        appBar: AppBar(
+          title: TextField(
+            controller: _searchController,
+            focusNode: _focusNode,
+            autofocus: true,
+            decoration: const InputDecoration(
+              hintText: 'ابحث عن رسم بياني...',
+              border: InputBorder.none,
             ),
+            onChanged: (value) {
+              ref.read(searchQueryProvider.notifier).state = value;
+            },
+          ),
+        ),
+        body: searchQuery.isEmpty
+            ? const Center(child: Text('ابدأ الكتابة للبحث.'))
+            : searchResults.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, st) => Center(child: Text('خطأ: $e')),
+                data: (diagrams) {
+                  if (diagrams.isEmpty) {
+                    return const Center(child: Text('لم يتم العثور على نتائج.'));
+                  }
+                  return ListView.builder(
+                    padding: EdgeInsets.all(16.w),
+                    itemCount: diagrams.length,
+                    itemBuilder: (context, index) {
+                      final diagramWithProgress = DiagramWithProgress(diagram: diagrams[index]);
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: 16.h),
+                        child: SizedBox(
+                          height: 250.h,
+                          child: DiagramCard(diagramWithProgress: diagramWithProgress),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+      ),
     );
   }
 }

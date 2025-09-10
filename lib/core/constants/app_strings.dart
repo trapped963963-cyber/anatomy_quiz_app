@@ -20,7 +20,7 @@ class AppStrings {
   }
 
   static String askFromDef(String definition) {
-    return 'أي رقم يشير إلى الجزء الذي تعريفه: "$definition"؟';
+    return '"$definition"';
   }
 
   static String askToWriteTitle(int number) {
