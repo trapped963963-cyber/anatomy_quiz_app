@@ -52,7 +52,7 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
             onPressed: () {
               Navigator.of(dialogContext).pop();
               // Navigate to the quiz with a special step number for the challenge
-              context.push('/step/$widget.levelId/-1');
+              context.push('/step/${widget.levelId}/-1');
             },
             child: const Text('ابدأ التحدي'),
           ),
@@ -156,7 +156,7 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
                         stepNumber: stepNumber,
                         title: label.title,
                         status: status,
-                        onTap: () => context.push('/step/$widget.levelId/$stepNumber'),
+                        onTap: () => context.push('/step/${widget.levelId}/$stepNumber'),
                       ),
                     );
                               
