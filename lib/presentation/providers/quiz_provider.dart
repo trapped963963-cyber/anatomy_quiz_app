@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:anatomy_quiz_app/data/models/models.dart';
 import 'package:anatomy_quiz_app/presentation/providers/database_provider.dart';
 import 'dart:math';
+import 'package:anatomy_quiz_app/core/constants/app_strings.dart';
+
 // This class will hold the state of a single quiz session
 class QuizState {
   final List<Question> questions;
@@ -74,7 +76,7 @@ class QuizNotifier extends StateNotifier<QuizState> {
       questionType: QuestionType.matching,
       diagramId: levelId,
       correctLabel: allLabelsForLevel.first,
-      questionText: 'للإتقان، قم بمطابقة جميع الأجزاء.',
+      questionText: AppStrings.matchingChallenge(),
       choices: allLabelsForLevel,
     );
     challengeQuestions.add(matchingQuestion);
@@ -118,7 +120,7 @@ class QuizNotifier extends StateNotifier<QuizState> {
       questionType: QuestionType.matching,
       diagramId: levelId,
       correctLabel: allLearnedLabels.first, // Placeholder
-      questionText: 'للإتقان، قم بمطابقة جميع الأجزاء التي درستها حتى الآن.',
+      questionText: AppStrings.matchingChallenge(),
       choices: allLearnedLabels,
     );
     finalQuestions.add(matchingQuestion);
@@ -147,18 +149,17 @@ class QuizNotifier extends StateNotifier<QuizState> {
     String questionText = '';
     switch (type) {
       case QuestionType.askForTitle:
-        questionText = 'ما هو اسم الجزء رقم ${correctLabel.labelNumber}؟';
+        questionText = AppStrings.askForTitle(correctLabel.labelNumber);
         break;
       case QuestionType.askForNumber:
-        questionText = 'ما هو رقم الجزء "${correctLabel.title}"؟';
+        questionText = AppStrings.askForNumber(correctLabel.title);
         break;
       case QuestionType.askFromDef:
-        questionText = 'أي رقم يشير إلى الجزء الذي تعريفه: "${correctLabel.definition}"؟';
+        questionText = AppStrings.askFromDef(correctLabel.definition);
         break;
       default:
-        break;
-    }
-    
+        questionText = '';
+    }    
     // Create a list of 3 wrong choices + the correct one
     List<Label> choices = (allChoices.where((l) => l.id != correctLabel.id).toList()..shuffle()).take(3).toList();
     choices.add(correctLabel);
@@ -182,7 +183,7 @@ class QuizNotifier extends StateNotifier<QuizState> {
       questionType: QuestionType.askToWriteTitle,
       diagramId: diagramId,
       correctLabel: newLabel,
-      questionText: 'اكتب اسم الجزء رقم ${newLabel.labelNumber}',
+      questionText: AppStrings.askToWriteTitle(newLabel.labelNumber),
       choices: [],
       randomIndex: Random().nextInt(100),
     ),
@@ -226,7 +227,7 @@ class QuizNotifier extends StateNotifier<QuizState> {
             questionType: type,
             diagramId: diagramId,
             correctLabel: label,
-            questionText: 'اكتب اسم الجزء رقم ${label.labelNumber}',
+            questionText:AppStrings.askToWriteTitle(label.labelNumber),
             choices: [],
             randomIndex: Random().nextInt(100),
           ));

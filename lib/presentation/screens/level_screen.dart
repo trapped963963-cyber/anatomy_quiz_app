@@ -22,7 +22,7 @@ class LevelScreen extends ConsumerWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('🌟 تحدي الإتقان'),
-        content: const Text('هذا اختبار شامل لكل الخطوات في هذا الدرس. إذا أجبت على جميع الأسئle بشكل صحيح، فسيتم اعتبار الدرس مكتملاً!'),
+        content: const Text('هذا اختبار شامل لكل الخطوات في هذا الدرس. إذا أجبت على جميع الأسئلة بشكل صحيح، فسيتم اعتبار الدرس مكتملاً!'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
@@ -71,11 +71,13 @@ class LevelScreen extends ConsumerWidget {
                   itemCount: diagram.labels.length + 1,
                   itemBuilder: (context, index) {
                     if (index == diagram.labels.length) {
+                      final isLessonCompleted = (userProgress.levelStats[levelId]?.isCompleted ?? false);
+
                       return SizedBox(
                         height: 150.h,
                         child: Center(
                           child: FinalChallengeIsland(
-                            isUnlocked: true,
+                            isLessonCompleted: isLessonCompleted,
                             onTap: () {
                               // ## THE FIX: Reset the provider here too ##
                               ref.read(quizProvider.notifier).reset();

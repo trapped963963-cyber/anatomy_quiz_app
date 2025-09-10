@@ -8,6 +8,7 @@ import 'package:anatomy_quiz_app/presentation/providers/providers.dart';
 import 'package:anatomy_quiz_app/core/utils/sound_service.dart';
 import 'package:flutter/services.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
+import 'package:anatomy_quiz_app/core/constants/app_strings.dart';
 
 class WordGameView extends ConsumerStatefulWidget {
   final Question question;
@@ -120,8 +121,10 @@ class _WordGameViewState extends ConsumerState<WordGameView> {
       List<String> displayWords = List.from(words);
       displayWords[chosenIndex] = toreplace;
       final String blankedTitle = displayWords.join(' ');
-      final String displayQuestionText = 'أكمل اسم الجزء رقم ${widget.question.correctLabel.labelNumber}:\n"$blankedTitle"';
-
+      final String displayQuestionText = AppStrings.askToWriteTitleWithContext(
+        widget.question.correctLabel.labelNumber,
+        blankedTitle,
+      );
       final actualLetters = wordToGuess.split('');
       List<String> finalLetterBank = List.from(actualLetters);
 

@@ -11,4 +11,28 @@ class AppStrings {
   static const String loadingMessage = 'انتظر من فضلك...';
   static const String unAbleToFindDbMessage = 'حدث خطأما, قد تكون هذه النسخة من التطبيق تالفةيرجى تحميل اخر اصدار من الرابط التالي';
 
+   static String askForTitle(int number) {
+    return 'ما هو اسم الجزء رقم $number؟';
+  }
+
+  static String askForNumber(String title) {
+    return 'ما هو رقم الجزء "$title"؟';
+  }
+
+  static String askFromDef(String definition) {
+    return 'أي رقم يشير إلى الجزء الذي تعريفه: "$definition"؟';
+  }
+
+  static String askToWriteTitle(int number) {
+    return 'اكتب اسم الجزء رقم $number';
+  }
+
+  static String matchingChallenge() {
+    return 'اختر الرقم من الأعلى والمسمى المطابق من الأسفل';
+  }
+  
+  static String askToWriteTitleWithContext(int number, String blankedTitle) {
+    return 'أكمل اسم الجزء رقم $number:\n"$blankedTitle"';
+  }
+
 }

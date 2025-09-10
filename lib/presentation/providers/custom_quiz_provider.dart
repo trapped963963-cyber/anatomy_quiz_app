@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:anatomy_quiz_app/data/models/models.dart';
 import 'package:anatomy_quiz_app/presentation/providers/database_provider.dart';
+import 'package:anatomy_quiz_app/core/constants/app_strings.dart';
 
 class CustomQuizConfigNotifier extends StateNotifier<CustomQuizConfig> {
   CustomQuizConfigNotifier() : super(const CustomQuizConfig());
@@ -87,7 +88,8 @@ final customQuizQuestionsProvider = FutureProvider.autoDispose<List<Question>>((
         
         // --- SMART CHOICE GENERATION LOGIC ---
         if (type == QuestionType.askForTitle) {
-          questionText = 'ما هو اسم الجزء رقم ${currentLabel.labelNumber}؟';
+
+          questionText = AppStrings.askToWriteTitle(currentLabel.labelNumber);
           final Set<String> usedTitles = {currentLabel.title};
           choices = [currentLabel];
           final decoys = allPossibleLabels.where((l) => l.id != currentLabel.id).toList()..shuffle();
@@ -98,7 +100,7 @@ final customQuizQuestionsProvider = FutureProvider.autoDispose<List<Question>>((
             }
           }
         } else if (type == QuestionType.askToWriteTitle) {
-          questionText = 'اكتب اسم الجزء رقم ${currentLabel.labelNumber}';
+            questionText = AppStrings.askToWriteTitle(currentLabel.labelNumber);
         } else { // For 'askForNumber' and 'askFromDef'
           final diagramSpecificLabels = labelsByDiagram[currentLabel.diagramId]!;
           choices = (diagramSpecificLabels.where((l) => l.id != currentLabel.id).toList()..shuffle())
@@ -106,9 +108,9 @@ final customQuizQuestionsProvider = FutureProvider.autoDispose<List<Question>>((
               .toList();
           
           if (type == QuestionType.askForNumber) {
-            questionText = 'ما هو رقم الجزء "${currentLabel.title}"؟';
+            questionText = AppStrings.askForNumber(currentLabel.title);
           } else { // askFromDef
-            questionText = 'أي رقم يشير إلى الجزء الذي تعريفه: "${currentLabel.definition}"؟';
+            questionText = AppStrings.askFromDef(currentLabel.definition);
           }
         }
 

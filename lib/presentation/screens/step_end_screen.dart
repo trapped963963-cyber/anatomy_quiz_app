@@ -95,6 +95,7 @@ class _StepEndScreenState extends ConsumerState<StepEndScreen> {
                   Text(
                     needsReview ? 'تحتاج إلى بعض المراجعة' : 'أداء رائع!',
                     style: TextStyle(fontSize: 32.sp, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center, // <-- ADD THIS LINE
                   ),
                   SizedBox(height: 20.h),
                   Text(
