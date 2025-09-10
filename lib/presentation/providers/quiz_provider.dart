@@ -65,6 +65,7 @@ class QuizNotifier extends StateNotifier<QuizState> {
       } else {
         challengeQuestions.add(_createMcq(label, allLabelsForLevel, randomType, levelId));
       }
+      break;
     }
     challengeQuestions.shuffle();
 

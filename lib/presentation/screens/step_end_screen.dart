@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anatomy_quiz_app/data/models/models.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:anatomy_quiz_app/presentation/providers/user_progress_provider.dart';
+import 'package:anatomy_quiz_app/presentation/providers/quiz_provider.dart';
 
 
 class StepEndScreen extends ConsumerStatefulWidget {
@@ -107,6 +108,7 @@ class _StepEndScreenState extends ConsumerState<StepEndScreen> {
                     label: Text(needsReview ? 'بدء المراجعة' : 'إنهاء الخطوة'),
                     onPressed: () {
                       if (needsReview) {
+                        // If there are wrong answers, always go to review.
                         context.push(
                           '/review',
                           extra: {
@@ -116,7 +118,15 @@ class _StepEndScreenState extends ConsumerState<StepEndScreen> {
                           },
                         );
                       } else {
-                        ref.read(userProgressProvider.notifier).masterLevel(widget.levelId);
+                        final diagram = ref.read(diagramWithLabelsProvider(widget.levelId)).asData?.value;
+                        final isLastStep = diagram != null && widget.stepNumber == diagram.labels.length;
+
+                        if (widget.stepNumber == -1 || isLastStep) {
+                          // If mastered, trigger the celebration signal.
+                          ref.read(userProgressProvider.notifier).masterLevel(widget.levelId);
+                        }
+
+                        // Always navigate to the step complete screen on a perfect score.
                         context.pushReplacement('/step-complete/${widget.levelId}/${widget.stepNumber}');
                       }
                     },

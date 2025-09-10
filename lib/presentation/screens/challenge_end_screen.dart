@@ -56,7 +56,7 @@ class ChallengeEndScreen extends ConsumerWidget {
               padding: EdgeInsets.symmetric(horizontal: 24.w),
               child: ElevatedButton(
                 onPressed: () {
-                  context.go('home');
+                  context.go('/home');
                   context.push('/level/$levelId');
                 },
                 child: const Text('العودة للدرس'),

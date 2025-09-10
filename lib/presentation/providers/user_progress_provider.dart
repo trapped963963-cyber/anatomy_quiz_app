@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anatomy_quiz_app/data/models/models.dart';
 import 'package:anatomy_quiz_app/presentation/providers/database_provider.dart';
-import 'package:anatomy_quiz_app/presentation/providers/celebration_provider.dart';
 
 
 class UserProgressNotifier extends StateNotifier<UserProgress> {
@@ -29,7 +28,6 @@ class UserProgressNotifier extends StateNotifier<UserProgress> {
     final updatedStats = Map<int, LevelStat>.from(state.levelStats);
     updatedStats[levelId] = newStat;
     state = state.copyWith(levelStats: updatedStats);
-    _ref.read(completedLevelCelebrationProvider.notifier).state = levelId;
 
   }
 

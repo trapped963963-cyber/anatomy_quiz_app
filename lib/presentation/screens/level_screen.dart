@@ -11,38 +11,18 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/quiz/diagram_widget.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/path/final_challenge_island.dart';
-import 'package:confetti/confetti.dart';
-import 'package:anatomy_quiz_app/presentation/providers/celebration_provider.dart';
 
-
-class LevelScreen extends ConsumerStatefulWidget {
+// It is now a simple ConsumerWidget again.
+class LevelScreen extends ConsumerWidget {
   final int levelId;
   const LevelScreen({super.key, required this.levelId});
 
-  @override
-  ConsumerState<LevelScreen> createState() => _LevelScreenState();
-}
-
-class _LevelScreenState extends ConsumerState<LevelScreen> {
-  late ConfettiController _confettiController;
-
-  @override
-  void initState() {
-    super.initState();
-    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
-  }
-
-  @override
-  void dispose() {
-    _confettiController.dispose();
-    super.dispose();
-  }
-  void _showChallengeDialog(BuildContext context) {
+  void _showChallengeDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('🌟 تحدي الإتقان'),
-        content: const Text('هذا اختبار شامل لكل الخطوات في هذا الدرس. إذا أجبت على جميع الأسئلة بشكل صحيح، فسيتم اعتبار الدرس مكتملاً!'),
+        content: const Text('هذا اختبار شامل لكل الخطوات في هذا الدرس. إذا أجبت على جميع الأسئle بشكل صحيح، فسيتم اعتبار الدرس مكتملاً!'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
@@ -51,8 +31,8 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
-              // Navigate to the quiz with a special step number for the challenge
-              context.push('/step/${widget.levelId}/-1');
+              ref.read(quizProvider.notifier).reset();
+              context.push('/step/$levelId/-1');
             },
             child: const Text('ابدأ التحدي'),
           ),
@@ -60,18 +40,10 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
       ),
     );
   }
+
   @override
-  Widget build(BuildContext context) {
-     
-     ref.listen<int?>(completedLevelCelebrationProvider, (previous, next) {
-      // If a level ID was set, and it's the current level...
-      if (next != null && next == widget.levelId) {
-        _confettiController.play();
-        // Reset the provider so the celebration doesn't happen again.
-        ref.read(completedLevelCelebrationProvider.notifier).state = null;
-      }
-    });
-    final diagramAsync = ref.watch(diagramWithLabelsProvider(widget.levelId));
+  Widget build(BuildContext context, WidgetRef ref) {
+    final diagramAsync = ref.watch(diagramWithLabelsProvider(levelId));
     final userProgress = ref.watch(userProgressProvider);
 
     return Scaffold(
@@ -82,10 +54,7 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
           error: (e, s) => const Text('خطأ'),
         ),
       ),
-      body: Stack(
-        alignment: Alignment.topCenter,
-        children: 
-          [diagramAsync.when(
+      body: diagramAsync.when(
           data: (diagram) {
             return Column(
               children: [ 
@@ -110,7 +79,7 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
                             onTap: () {
                               // ## THE FIX: Reset the provider here too ##
                               ref.read(quizProvider.notifier).reset();
-                              _showChallengeDialog(context);
+                              _showChallengeDialog(context,ref);
                             },
                           ),
                         ),
@@ -119,7 +88,7 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
                     final label = diagram.labels[index];
                     final stepNumber = index + 1;
                               
-                    final LevelStat? levelProgress = userProgress.levelStats[widget.levelId];
+                    final LevelStat? levelProgress = userProgress.levelStats[levelId];
                     final int completedSteps = levelProgress?.completedSteps ?? 0;
                               
                     StepStatus status;
@@ -163,7 +132,7 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
                         onTap: () {
                           // ## THE FIX: Reset the provider before starting a new quiz ##
                           ref.read(quizProvider.notifier).reset();
-                          context.push('/step/${widget.levelId}/$stepNumber');
+                          context.push('/step/$levelId/$stepNumber');
                         },
                       ),
                     );
@@ -205,13 +174,6 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
           loading: () => const AppLoadingIndicator(),
           error: (e, s) => Center(child: Text('حدث خطأ: $e')),
         ),
-            ConfettiWidget(
-      confettiController: _confettiController,
-      blastDirectionality: BlastDirectionality.explosive,
-      shouldLoop: false,),
-    
-        ]
-      ),
     );
   }
 }
