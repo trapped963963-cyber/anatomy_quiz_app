@@ -48,7 +48,7 @@ dependencies:
   cryptography: ^2.7.0
   encrypt: ^5.0.3
   fernet: ^0.0.4
-  screen_protector: ^1.4.2+1 # <-- ADD THIS
+  screen_protector: ^1.4.2+1
 
 
 
