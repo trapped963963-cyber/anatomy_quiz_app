@@ -89,18 +89,18 @@ class _WordGameViewState extends ConsumerState<WordGameView> {
       // ## THE FIX: Create a centralized list of excluded words ##
       const List<String> excludedWords = ['أو', 'او', 'إلى' , 'الى' , 'من' , 'في', 'عن' , 'على','حول'];
 
-      final words = title.split(' ').where((word) {
-        final trimmedWord = word.trim();
-        // The filter now checks if the trimmed word is in our new list.
-        return trimmedWord.length > 1 && !excludedWords.contains(trimmedWord);
-      }).toList();
+      final words = title.split(RegExp(r'\s+'));
+
       List<int> fittableWordIndexes = [];
       for (int i = 0; i < words.length; i++) {
-        if (words[i].length <= maxLetters) {
+        final trimmedWord = words[i].trim();
+        // A word is fittable if it's long enough, not excluded, AND fits the screen.
+        if (trimmedWord.length > 1 &&
+            !excludedWords.contains(trimmedWord) &&
+            words[i].length <= maxLetters) {
           fittableWordIndexes.add(i);
         }
       }
-
       String wordToGuess;
       int chosenIndex;
       String toreplace;

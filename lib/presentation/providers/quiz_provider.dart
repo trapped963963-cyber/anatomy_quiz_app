@@ -107,10 +107,9 @@ class QuizNotifier extends StateNotifier<QuizState> {
     List<Question> initialQuestions = _generateInitialQuestions(newLabel, levelId, allLearnedLabels);
     List<Question> reinforcementQuestions = _generateReinforcementQuestions(previousLabels, levelId, allLearnedLabels);
     
-
     for (var question in initialQuestions) {
-      if (question.questionType == QuestionType.askToWriteTitle) {
-        reinforcementQuestions.add(question.copyWith(randomIndex: Random().nextInt(100)));
+      if (question.questionType == QuestionType.askToWriteTitle || question.questionType == QuestionType.askFromDef) {
+        continue;
       } else {
         reinforcementQuestions.add(question);
       }
@@ -122,7 +121,7 @@ class QuizNotifier extends StateNotifier<QuizState> {
 
     // Question Cap Logic
     if (finalQuestions.length > 50) {
-      finalQuestions = [...initialQuestions, ...reinforcementQuestions.sublist(0, 46)];
+      finalQuestions = [...initialQuestions, ...reinforcementQuestions.sublist(0, 36)];
     }
 
     final matchingQuestion = Question(
@@ -213,8 +212,6 @@ class QuizNotifier extends StateNotifier<QuizState> {
     List<Question> questions = [];
 
     for (var label in previousLabels) {
-      // ## THE FIX ##
-      // 1. Create a dynamic list of possible types for THIS specific label.
       final List<QuestionType> possibleTypes = [
         QuestionType.askForTitle,
         QuestionType.askForNumber,
