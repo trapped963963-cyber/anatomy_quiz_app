@@ -56,7 +56,7 @@ class _QuizContentSelectionScreenState extends ConsumerState<QuizContentSelectio
                           _selectedDiagramIds = allCompletedDiagrams;
                         });
                       },
-                      child: const Text('تحديد كل المكتمل'),
+                      child: const Text('تحديد الدروس المكتملة'),
                     ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.grey.shade300, foregroundColor: Colors.black),

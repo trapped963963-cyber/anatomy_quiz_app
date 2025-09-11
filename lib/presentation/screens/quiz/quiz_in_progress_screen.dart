@@ -8,12 +8,8 @@ import 'package:anatomy_quiz_app/presentation/providers/quiz_provider.dart';
 import 'package:anatomy_quiz_app/presentation/providers/quiz_result_provider.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/quiz/diagram_widget.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/quiz/question_widget.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:anatomy_quiz_app/presentation/widgets/quiz/animated_countdown_text.dart';
-import 'package:anatomy_quiz_app/presentation/providers/settings_provider.dart';
-
-
 import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
+import 'package:anatomy_quiz_app/presentation/widgets/quiz/quiz_status_bar.dart';
 
 class QuizInProgressScreen extends ConsumerStatefulWidget {
   const QuizInProgressScreen({super.key});
@@ -29,7 +25,7 @@ class _QuizInProgressScreenState extends ConsumerState<QuizInProgressScreen> wit
   Timer? _timer;
   int _timeLeftInSeconds = 0;
   bool _isTimerInitialized = false;
-
+  int _totalTime = 0;
 
   @override
   void initState() {
@@ -43,8 +39,8 @@ class _QuizInProgressScreenState extends ConsumerState<QuizInProgressScreen> wit
 
     // If the timer hasn't been started yet, initialize it from the config.
     if (!_isTimerInitialized) {
-      final totalTime = ref.read(customQuizConfigProvider).timeInMinutes * 60;
-      _timeLeftInSeconds = totalTime;
+       _totalTime = ref.read(customQuizConfigProvider).timeInMinutes * 60;
+      _timeLeftInSeconds = _totalTime;
       _isTimerInitialized = true;
     }
 
@@ -170,32 +166,6 @@ class _QuizInProgressScreenState extends ConsumerState<QuizInProgressScreen> wit
         }
       },
       child: Scaffold(
-       appBar: AppBar(  
-        title: questionsAsync.when(
-          // While loading or if there's an error, show a simple title.
-          loading: () => const Text('اختبار مخصص'),
-          error: (e, st) => const Text('اختبار مخصص'),
-          // Only when we have the data, we build the dynamic title.
-          data: (questions) => Text(
-            'سؤال ${_currentQuestionIndex + 1} / ${questions.length}'
-          ),
-        ),          
-        actions: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
-              child: Center(
-                // Replace the old Text widget with our new animated one
-                child: AnimatedCountdownText(
-                  // Get the total time from the config for the color calculation
-                  totalSeconds: ref.read(customQuizConfigProvider).timeInMinutes * 60,
-                  // Pass the current time left from our state
-                  remainingSeconds: _timeLeftInSeconds,
-                  hapticsEnabled: ref.watch(settingsProvider)['haptics'] ?? true,
-                ),
-              ),
-            ),
-          ],
-        ),
         body: questionsAsync.when(
           loading: () => const Center(
             child: Column(
@@ -221,29 +191,34 @@ class _QuizInProgressScreenState extends ConsumerState<QuizInProgressScreen> wit
             final currentQuestion = questions[_currentQuestionIndex];
             final diagramAsync = ref.watch(diagramWithLabelsProvider(currentQuestion.diagramId));
       
-            return Column(
-              children: [
-                LinearProgressIndicator(value: (_currentQuestionIndex + 1) / questions.length),
-                Expanded(
-                  flex: 1,
-                  child: diagramAsync.when(
-                    data: (diagram) => DiagramWidget(imageAssetPath: diagram.imageAssetPath),
-                    loading: () => const AppLoadingIndicator(),
-                    error: (e, s) => const Center(child: Text('لا يمكن تحميل الرسم')),
+            return SafeArea(
+              child: Column(
+                children: [
+                  QuizStatusBar(
+                    totalSeconds: _totalTime,
+                    remainingSeconds: _timeLeftInSeconds,
                   ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: QuestionWidget(
-                    key: ValueKey('${currentQuestion.correctLabel.id}_${currentQuestion.questionType.toString()}_$_currentQuestionIndex'),
-                    question: currentQuestion,
-                    mode: QuestionMode.test,
-                    onAnswered: (isCorrect) {
-                      _onQuestionAnswered(isCorrect, currentQuestion);
-                    },
+                  Expanded(
+                    flex: 1,
+                    child: diagramAsync.when(
+                      data: (diagram) => DiagramWidget(imageAssetPath: diagram.imageAssetPath),
+                      loading: () => const AppLoadingIndicator(),
+                      error: (e, s) => const Center(child: Text('لا يمكن تحميل الرسم')),
+                    ),
                   ),
-                ),
-              ],
+                  Expanded(
+                    flex: 2,
+                    child: QuestionWidget(
+                      key: ValueKey('${currentQuestion.correctLabel.id}_${currentQuestion.questionType.toString()}_$_currentQuestionIndex'),
+                      question: currentQuestion,
+                      mode: QuestionMode.test,
+                      onAnswered: (isCorrect) {
+                        _onQuestionAnswered(isCorrect, currentQuestion);
+                      },
+                    ),
+                  ),
+                ],
+              ),
             );
           },
         ),

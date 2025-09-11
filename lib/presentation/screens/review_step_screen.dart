@@ -4,9 +4,8 @@ import 'package:anatomy_quiz_app/data/models/models.dart';
 import 'package:anatomy_quiz_app/presentation/providers/quiz_provider.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/quiz/diagram_widget.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/quiz/question_widget.dart';
-
-
 import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ReviewQueueState {
   final List<Question> questions;
@@ -130,27 +129,29 @@ class _ReviewStepScreenState extends ConsumerState<ReviewStepScreen> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(title: Text('مراجعة (${reviewQueue.length} متبقي)')),
-        body: Column(
-          children: [
-            Expanded(
-              flex: 1,
-              child: diagramAsync.when(
-                data: (diagram) => DiagramWidget(imageAssetPath: diagram.imageAssetPath),
-                loading: () => const AppLoadingIndicator(),
-                error: (e, s) => Center(child: Text('Error: $e')),
+        body: SafeArea(
+          child: Column(
+            children: [
+              SizedBox(height: 16.h),
+              Expanded(
+                flex: 1,
+                child: diagramAsync.when(
+                  data: (diagram) => DiagramWidget(imageAssetPath: diagram.imageAssetPath),
+                  loading: () => const AppLoadingIndicator(),
+                  error: (e, s) => Center(child: Text('Error: $e')),
+                ),
               ),
-            ),
-            Expanded(
-              flex: 2,
-              child: QuestionWidget(
-                key: UniqueKey(),
-                question: currentQuestion,
-                mode: QuestionMode.learn,
-                onAnswered: (isCorrect) => reviewNotifier.answer(isCorrect),
+              Expanded(
+                flex: 2,
+                child: QuestionWidget(
+                  key: UniqueKey(),
+                  question: currentQuestion,
+                  mode: QuestionMode.learn,
+                  onAnswered: (isCorrect) => reviewNotifier.answer(isCorrect),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

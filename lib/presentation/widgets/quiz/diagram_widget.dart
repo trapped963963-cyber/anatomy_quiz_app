@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class DiagramWidget extends StatefulWidget {
   final String imageAssetPath;
@@ -107,63 +108,66 @@ class _DiagramWidgetState extends State<DiagramWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.grey.shade300, width: 1),
-        borderRadius: BorderRadius.circular(12.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.hardEdge,
-      child: Stack(
-        children: [
-          // ## THE FIX: Add onTap to the GestureDetector ##
-          GestureDetector(
-            onTap: _openFullScreen, // Single tap now opens the full-screen view
-            onDoubleTapDown: _handleDoubleTap,
-            onScaleStart: (_) => _showControls(), // Also show controls on pan/zoom
-            child: Hero(
-              tag: widget.imageAssetPath,
-              child: InteractiveViewer(
-                transformationController: _transformationController,
-                onInteractionStart: (_) => _showControls(),
-                panEnabled: true,
-                minScale: 0.5,
-                maxScale: 4.0,
-                child: Image.asset(
-                  widget.imageAssetPath,
-                  fit: BoxFit.contain,
+    return Padding(
+      padding: const EdgeInsets.all(5),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: Colors.grey.shade300, width: 1),
+          borderRadius: BorderRadius.circular(12.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: Stack(
+          children: [
+            // ## THE FIX: Add onTap to the GestureDetector ##
+            GestureDetector(
+              onTap: _openFullScreen, // Single tap now opens the full-screen view
+              onDoubleTapDown: _handleDoubleTap,
+              onScaleStart: (_) => _showControls(), // Also show controls on pan/zoom
+              child: Hero(
+                tag: widget.imageAssetPath,
+                child: InteractiveViewer(
+                  transformationController: _transformationController,
+                  onInteractionStart: (_) => _showControls(),
+                  panEnabled: true,
+                  minScale: 0.5,
+                  maxScale: 4.0,
+                  child: Image.asset(
+                    widget.imageAssetPath,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ),
-          ),
-          // We can now position the reset button in a different corner
-          Positioned(
-            top: 8.h,
-            left: 8.w,
-            child: AnimatedOpacity(
-              opacity: _areControlsVisible ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 400),
-              curve: Curves.easeInOut,
-              child: Material(
-                color: Colors.black.withOpacity(0.3),
-                shape: const CircleBorder(),
-                child: IconButton(
-                  icon: const Icon(Icons.zoom_out),
-                  color: Colors.white,
-                  onPressed: _resetView,
-                  tooltip: 'إعادة تعيين',
+            // We can now position the reset button in a different corner
+            Positioned(
+              top: 8.h,
+              left: 8.w,
+              child: AnimatedOpacity(
+                opacity: _areControlsVisible ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeInOut,
+                child: Material(
+                  color: Colors.black.withOpacity(0.3),
+                  shape: const CircleBorder(),
+                  child: IconButton(
+                    icon: const Icon(Icons.zoom_out),
+                    color: Colors.white,
+                    onPressed: _resetView,
+                    tooltip: 'إعادة تعيين',
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

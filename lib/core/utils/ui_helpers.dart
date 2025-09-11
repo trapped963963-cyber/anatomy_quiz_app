@@ -147,7 +147,7 @@ Widget buildQuestionContainer({
     children: [
       Container(
         width: double.infinity,
-        constraints: BoxConstraints(minHeight: 60.h, maxHeight: 70.h),
+        constraints: BoxConstraints(minHeight: 60.h, maxHeight: 80.h),
         padding: EdgeInsets.symmetric(vertical: 5.h,horizontal: 20.w),
         decoration: BoxDecoration(
           color: Colors.grey.shade100,
