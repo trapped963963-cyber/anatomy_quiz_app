@@ -108,7 +108,7 @@ class _StepScreenState extends ConsumerState<StepScreen> {
       }, 
       child: Scaffold(
         appBar: AppBar(
-          title: Text('الخطوة ${widget.stepNumber} - سؤال ${quizState.currentQuestionIndex + 1}/${quizState.questions.length}'),
+          title: Text('سؤال ${quizState.currentQuestionIndex + 1}/${quizState.questions.length}'),
           bottom: PreferredSize(
             preferredSize: Size.fromHeight(4.h),
             child: LinearProgressIndicator(

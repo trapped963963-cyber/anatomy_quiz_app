@@ -53,21 +53,30 @@ class QuizNotifier extends StateNotifier<QuizState> {
     // 1. Create one question for each label in the diagram.
     List<Question> challengeQuestions = [];
     for (var label in allLabelsForLevel) {
-      // We'll create a random MCQ question for each label.
-      // We can make this more complex later if needed.
-      final randomType = [
+      final types = [
         QuestionType.askForTitle,
         QuestionType.askForNumber,
         QuestionType.askFromDef,
-      ][Random().nextInt(3)];
-
-      if (randomType == QuestionType.askFromDef && label.definition.trim().isEmpty) {
-        // Fallback if the label has no definition
-        challengeQuestions.add(_createMcq(label, allLabelsForLevel, QuestionType.askForTitle, levelId));
-      } else {
-        challengeQuestions.add(_createMcq(label, allLabelsForLevel, randomType, levelId));
+        QuestionType.askToWriteTitle
+      ];
+      for(var type in types){
+        if (type == QuestionType.askFromDef && label.definition.trim().isEmpty) {
+          continue;
+        }
+        else if(type == QuestionType.askToWriteTitle){
+             challengeQuestions.add(Question(
+            questionType: type,
+            diagramId: levelId,
+            correctLabel: label,
+            questionText:AppStrings.askToWriteTitle(label.labelNumber),
+            choices: [],
+            randomIndex: Random().nextInt(100),
+          ));
+        }
+         else {
+          challengeQuestions.add(_createMcq(label, allLabelsForLevel, type, levelId));
+        }
       }
-      break;
     }
     challengeQuestions.shuffle();
 

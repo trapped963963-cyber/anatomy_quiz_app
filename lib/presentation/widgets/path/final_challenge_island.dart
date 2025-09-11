@@ -15,7 +15,7 @@ class FinalChallengeIsland extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color backgroundColor = isLessonCompleted ? AppColors.surface : AppColors.accent;
-    final IconData iconData = isLessonCompleted ? Icons.emoji_events_rounded : Icons.fitness_center;
+    final IconData iconData = isLessonCompleted ? Icons.emoji_events_rounded : Icons.rocket_launch;
 
     return InkWell(
       onTap: onTap,
