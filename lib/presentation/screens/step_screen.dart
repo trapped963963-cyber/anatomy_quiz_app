@@ -6,8 +6,9 @@ import 'package:anatomy_quiz_app/presentation/widgets/quiz/diagram_widget.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/quiz/question_widget.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anatomy_quiz_app/data/models/question.dart';
-
 import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
+import 'package:step_progress_indicator/step_progress_indicator.dart';
+
 class StepScreen extends ConsumerStatefulWidget {
   final int levelId;
   final int stepNumber;
@@ -45,12 +46,10 @@ class _StepScreenState extends ConsumerState<StepScreen> {
     final quizNotifier = ref.read(quizProvider.notifier);
     final diagramAsync = ref.watch(diagramWithLabelsProvider(widget.levelId));
 
-    // Inside your _StepScreenState's build method...
 
     ref.listen<QuizState>(quizProvider, (previous, next) {
       if (next.isFinished) {
         
-        // De-duplicate the list of wrongly answered questions first.
         final seenKeys = <String>{};
         final uniqueWronglyAnswered = <Question>[];
         for (var question in next.wronglyAnswered) {
@@ -60,9 +59,7 @@ class _StepScreenState extends ConsumerState<StepScreen> {
           }
         }
 
-        // ## THE FIX: Check which type of quiz just ended ##
         if (widget.stepNumber == -1) {
-          // This was a Final Challenge. Navigate to the new ChallengeEndScreen.
           context.pushReplacement(
             '/challenge-end',
             extra: {
@@ -107,37 +104,42 @@ class _StepScreenState extends ConsumerState<StepScreen> {
         }
       }, 
       child: Scaffold(
-        appBar: AppBar(
-          title: Text('سؤال ${quizState.currentQuestionIndex + 1}/${quizState.questions.length}'),
-          bottom: PreferredSize(
-            preferredSize: Size.fromHeight(4.h),
-            child: LinearProgressIndicator(
-              value: (quizState.currentQuestionIndex + 1) / quizState.questions.length,
-            ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 2.w,vertical: 2.h),
+                child: StepProgressIndicator(
+                  totalSteps: quizState.questions.length,
+                  currentStep: quizState.currentQuestionIndex + 1,
+                  padding: 0.5.w, // Spacing between the "chunks"
+                  size: 5.h, // The height of the bar
+                  selectedColor: Theme.of(context).primaryColor,
+                  unselectedColor: Colors.grey.shade300,
+                  roundedEdges: Radius.circular(20.r),
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: diagramAsync.when(
+                  data: (diagram) => DiagramWidget(imageAssetPath: diagram.imageAssetPath),
+                  loading: () => const AppLoadingIndicator(),
+                  error: (e, s) => const Center(child: Text('لا يمكن تحميل الرسم')),
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: QuestionWidget(
+                  key: ValueKey(currentQuestion.correctLabel.id), // Important to force widget rebuild
+                  question: currentQuestion,
+                  onAnswered: (isCorrect) {
+                    quizNotifier.answerQuestion(isCorrect);
+                  },
+                  mode: QuestionMode.learn, 
+                ),
+              ),
+            ],
           ),
-        ),
-        body: Column(
-          children: [
-            Expanded(
-              flex: 1,
-              child: diagramAsync.when(
-                data: (diagram) => DiagramWidget(imageAssetPath: diagram.imageAssetPath),
-                loading: () => const AppLoadingIndicator(),
-                error: (e, s) => const Center(child: Text('لا يمكن تحميل الرسم')),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: QuestionWidget(
-                key: ValueKey(currentQuestion.correctLabel.id), // Important to force widget rebuild
-                question: currentQuestion,
-                onAnswered: (isCorrect) {
-                  quizNotifier.answerQuestion(isCorrect);
-                },
-                mode: QuestionMode.learn, 
-              ),
-            ),
-          ],
         ),
       ),
     );

@@ -59,7 +59,7 @@ class LevelScreen extends ConsumerWidget {
             return Column(
               children: [ 
                 SizedBox(
-                  height: 200.h, // Give the diagram a fixed height
+                  height: 250.h, // Give the diagram a fixed height
                   child: DiagramWidget(
                     imageAssetPath: diagram.labeledImageAssetPath, // Use the new labeled image
                   ),
