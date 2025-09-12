@@ -8,3 +8,4 @@ export 'unit.dart';
 export 'diagram_with_progress.dart';
 export 'custom_quiz_config.dart';
 export 'quiz_result.dart';
+export 'unit_with_diagrams.dart';

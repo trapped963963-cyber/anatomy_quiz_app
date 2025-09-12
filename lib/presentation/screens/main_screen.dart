@@ -75,7 +75,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                       // In the main Row
                       Expanded( // Wrap in Expanded to give it a defined space
                         child: AutoSizeText(
-                          'مرحباً، ${userProgress.userName ?? ''}!عبد الرحمن',
+                          'مرحباً، ${userProgress.userName ?? ''}!',
                           style: TextStyle(fontSize: 28.sp, fontWeight: FontWeight.bold),
                           maxLines: 1, // Ensure it stays on one line
                           minFontSize: 15, // Set a minimum readable size

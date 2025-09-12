@@ -55,7 +55,7 @@ class _DiagramsCarouselState extends State<DiagramsCarousel> {
         itemSize: 240.w,
         initialIndex: widget.initialIndex.toDouble(),
         scrollDirection: Axis.horizontal,
-          clipBehavior: Clip.none,
+        clipBehavior: Clip.antiAlias,
 
         // This makes the items on the side smaller.
         dynamicItemSize: true, 

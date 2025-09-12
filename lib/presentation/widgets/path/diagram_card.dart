@@ -103,7 +103,6 @@ class DiagramCard extends ConsumerWidget {
                     child: ElevatedButton(
                       onPressed: () {
                         ref.read(userProgressProvider.notifier).setLastActiveLevel(diagram.id, diagram.title);
-                        print(diagram.title);
                         context.push('/level/${diagram.id}');
                       }, 
                       style: ElevatedButton.styleFrom(
