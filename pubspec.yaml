@@ -63,6 +63,8 @@ dependencies:
   percent_indicator: ^4.2.3
   scroll_snap_list: ^0.9.1
   step_progress_indicator: ^1.0.2
+  flutter_launcher_icons: ^0.13.1
+
 
   
   # Icons and Animations (optional but good for gamification)
@@ -137,3 +139,9 @@ flutter_native_splash:
   android_12:
     color: "#F0F4F8"
     # image: assets/images/logo.png
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/logo.png"
+  min_sdk_android: 21

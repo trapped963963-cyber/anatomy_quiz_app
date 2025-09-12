@@ -5,7 +5,7 @@ class AppStrings {
   AppStrings._();
 
   // main.dart
-  static const String appName = 'اختبر معلوماتك في علم التشريح';
+  static const String appName = 'علوم لايت';
   
   //splash_screen
   static const String loadingMessage = 'انتظر من فضلك...';

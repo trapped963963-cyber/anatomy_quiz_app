@@ -12,10 +12,10 @@ class AppLoadingIndicator extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.science_outlined,
-            size: 80.r, // Slightly smaller for general use
-            color: Theme.of(context).primaryColor,
+          Image.asset(
+            'assets/images/loading_logo.png', // The path to your new logo
+            width: 100.r, // Control the size
+            height: 100.r,
           ).animate(onPlay: (controller) => controller.repeat(reverse: true))
            .fade(duration: 1500.ms, curve: Curves.easeInOut),
           SizedBox(height: 20.h),
