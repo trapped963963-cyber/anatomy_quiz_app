@@ -167,13 +167,17 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('متابعة التعلم', style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold, color: Colors.white)),
-                  AutoSizeText(
-                    lastActiveLevelTitle,
-                    style: TextStyle(fontSize: 16.sp, color: Colors.white70),
-                    maxLines: 2,
-                    minFontSize: 12,
-                    overflow: TextOverflow.ellipsis, // Add '...' if it's still too long
-                  ),                ],
+                  SizedBox(
+                     width: MediaQuery.of(context).size.width * 0.5,
+                    child: AutoSizeText(
+                      lastActiveLevelTitle,
+                      style: TextStyle(fontSize: 16.sp, color: Colors.white70),
+                      maxLines: 2,
+                      minFontSize: 12,
+                      overflow: TextOverflow.ellipsis, // Add '...' if it's still too long
+                    ),
+                  ),                
+                ],
               ),
               // The icon is now a direct child of the Row
               Icon(Icons.send, color: Colors.white, size: 40.sp),
