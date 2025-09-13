@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 enum StepStatus { locked, current, completed }
 
@@ -64,15 +65,17 @@ class StepIsland extends StatelessWidget {
             child: Icon(iconData, color: foregroundColor, size: 35.r),
           ),
           SizedBox(height: 8.h),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w600,
-              color: isTappable ? AppColors.textPrimary : AppColors.textSecondary,
-            ),
+         AutoSizeText(
+          title,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 14.sp, // This now acts as the max font size
+            fontWeight: FontWeight.w600,
+            color: isTappable ? AppColors.textPrimary : AppColors.textSecondary,
           ),
+          maxLines: 2, // Allow the title to wrap to a second line
+          minFontSize: 10, // Set a minimum readable font size
+        ),
         ],
       ),
     );

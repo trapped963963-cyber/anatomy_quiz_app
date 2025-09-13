@@ -113,10 +113,20 @@ class _WordGameViewState extends ConsumerState<WordGameView> {
       } else {
         final longestWord = words.reduce((a, b) => a.length > b.length ? a : b);
         chosenIndex = words.indexOf(longestWord);
-        wordToGuess = longestWord.substring(longestWord.length - maxLetters);
-        final String wordStem = longestWord.substring(0, longestWord.length - maxLetters);
+        int Y = maxLetters;
+        if(maxLetters == longestWord.length -1 && longestWord.length!=2)
+        {
+          Y=maxLetters-1;
+        }
+        if(longestWord.contains('Hz'))
+        {Y = 2;}
+        wordToGuess = longestWord.substring(longestWord.length - Y);
+        final String wordStem = longestWord.substring(0, longestWord.length - Y);
         toreplace = '$wordStem${'-' * wordToGuess.length}';
       }
+      
+
+      
 
       List<String> displayWords = List.from(words);
       displayWords[chosenIndex] = toreplace;
