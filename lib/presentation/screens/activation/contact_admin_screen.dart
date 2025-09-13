@@ -8,6 +8,7 @@ import 'package:anatomy_quiz_app/core/utils/api_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:anatomy_quiz_app/presentation/providers/providers.dart';
 import 'package:anatomy_quiz_app/presentation/widgets/shared/app_loading_indicator.dart';
+import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
 
 class ContactAdminScreen extends ConsumerStatefulWidget {
   const ContactAdminScreen({super.key});
@@ -22,7 +23,7 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
   String? _fingerprint;
   String? _lastError;
   int _apiFailedAttempts = 0;
-  final String _backupContactNumber = "+963997564200";
+  final String _backupContactNumber = "+963959267289";
 
   // ## NEW: State variables to hold the user's data from SharedPreferences ##
   String _userName = '';
@@ -164,11 +165,25 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('خطوة 4 من 5')),
-      body: Padding(
-        padding: EdgeInsets.all(24.w),
-        child: Center(
-          child: _buildBody(),
-        ),
+      body: Stack(
+        children: [
+          Center(
+            child: Opacity(
+              opacity: 0.05, // Make it very subtle
+              child: Image.asset(
+                'assets/images/loading_logo.png', // The path to your logo
+                width: 500.r,
+                height: 500.r,
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(24.w),
+            child: Center(
+              child: _buildBody(),
+            ),
+          ),
+        ]
       ),
     );
   }
@@ -189,82 +204,144 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
 
   Widget _buildSuccessState() {
     
-    String message = 'أرغب في تفعيل التطبيق.\n'
+    String message =
         'الاسم: $_userName\n'
         'الجنس: $_gender\n'
-        'رقم الهاتف: $_phoneNumber';
+        'رقم الهاتف: $_phoneNumber\n\n\n';
 
     if (_promoCode.isNotEmpty) {
       message += '\nالرمز الترويجي: $_promoCode';
     }
     message += '\nرمز الجهاز: $_fingerprint';
+    message += '\n\n\n\n\n اضغط زر الإرسال لإتمام عملية الدفع والحصول على رمز التفعيل\n\n';
 
-return Column(
+  return Column(
     children: [
-      // --- Top Section: Scrollable Message ---
+      // --- Top Section: Fixed Header ---
+      Text(
+        'للحصول على كود التفعيل، أرسل الرسالة التالية:',
+        style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
+        textAlign: TextAlign.center,
+      ),
+      SizedBox(height: 20.h),
+      
+      // --- Middle Section: Scrollable Message ---
       Expanded(
         child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: Container(
+            padding: EdgeInsets.all(16.w),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200,
+              borderRadius: BorderRadius.circular(8.r)
+            ),
+            child: Text(
+              message,
+              style: TextStyle(fontSize: 16.sp, height: 1.5),
+              textAlign: TextAlign.right,
+            ),
+          ),
+        ),
+      ),
+      // --- Bottom Section: Fixed Buttons ---
+      const Divider(thickness: 1, height: 20),
+      // Use a SingleChildScrollView here in case the buttons overflow on very small screens
+      SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ElevatedButton.icon(
+              icon: const Icon(Icons.copy),
+              label: const Text('نسخ الرسالة'),
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: message));
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم نسخ الرسالة بنجاح')));
+              },
+            ),
+            SizedBox(height: 12.h),
+            ElevatedButton(
+              onPressed: () => _launchUrl(Uri.parse('https://wa.me/$_contactNumber?text=${Uri.encodeComponent(message)}')),
+              child: const Text('إرسال عبر واتساب'),
+            ),
+            SizedBox(height: 10.h),
+            ElevatedButton(
+  onPressed: () async {
+    // 1. Copy the message to the clipboard.
+    await Clipboard.setData(ClipboardData(text: message));
+
+    // 2. Show the custom, stylish SnackBar FIRST.
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 3), // Slightly longer duration
+          backgroundColor: AppColors.primary, // Use your app's primary color
+          behavior: SnackBarBehavior.floating, // Make it a floating rectangle
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)), // Rounded corners
+          padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 20.w), // More padding
+          content: Row(
             children: [
-              Text('للحصول على كود التفعيل، أرسل الرسالة التالية:', style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-              SizedBox(height: 20.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8.r)),
-                child: Text(message, style: TextStyle(fontSize: 16.sp, height: 1.5), textAlign: TextAlign.right),
-              ),
-              SizedBox(height: 10.h),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.copy),
-                label: const Text('نسخ الرسالة'),
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: message));
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم نسخ الرسالة بنجاح')));
-                },
-              ),
-              SizedBox(height: 20.h),
-              ElevatedButton(
-                onPressed: () => _launchUrl(Uri.parse('https://wa.me/$_contactNumber?text=${Uri.encodeComponent(message)}')),
-                child: const Text('إرسال عبر واتساب'),
-              ),
-              SizedBox(height: 10.h),
-              ElevatedButton(
-                onPressed: () async {
-                  await Clipboard.setData(ClipboardData(text: message));
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        duration: Duration(seconds: 2),
-                        content: Text('تم نسخ الرسالة! الرجاء لصقها في محادثة تيليجرام.'),
-                      ),
-                    );
-                  }
-                  await Future.delayed(const Duration(seconds: 2));
-                  _launchUrl(Uri.parse('https://t.me/YourAdminUsername'));
-                },
-                child: const Text('إرسال عبر تيليجرام'),
-              ),
-              SizedBox(height: 10.h),
-              ElevatedButton(
-                onPressed: () => _launchUrl(Uri.parse('sms:$_contactNumber?body=${Uri.encodeComponent(message)}')),
-                child: const Text('إرسال عبر رسالة نصية'),
+              Icon(Icons.copy, color: AppColors.primary, size: 24.sp), // Icon for attention
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Text(
+                  'تم نسخ الرسالة! الرجاء لصقها في محادثة تيليجرام. .. انتظر قليلا',
+                  style: TextStyle(
+                    color: AppColors.surface, // Text color that contrasts with background
+                    fontSize: 16.sp, // Slightly larger font size
+                    fontWeight: FontWeight.bold, // Bold text
+                  ),
+                ),
               ),
             ],
           ),
         ),
-      ),
-      
-      // --- Bottom Section: Fixed Buttons ---
-      const Divider(thickness: 1),
-      Padding(
-        padding: EdgeInsets.only(top: 8.h),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            OutlinedButton(
+      );
+    }
+
+    // 3. Wait for 2 seconds (or 3, matching snackbar duration) so the user can read the message.
+    await Future.delayed(const Duration(seconds: 3)); // Match the SnackBar duration
+
+    // 4. Launch the Telegram app.
+    _launchUrl(Uri.parse('https://t.me/$_contactNumber'));
+  },
+  child: const Text('إرسال عبر تيليجرام'),
+),
+            SizedBox(height: 10.h),
+            ElevatedButton(
+              onPressed: () => _launchUrl(Uri.parse('sms:$_contactNumber?body=${Uri.encodeComponent(message)}')),
+              // ## THE FIX: The child is now a Column ##
+              child: Column(
+                children: [
+                  // Main button text
+                  const Text('إرسال عبر رسالة نصية'),
+                  // Smaller disclaimer text
+                  Text(
+                    '(قد يتم تطبيق رسوم الرسائل النصية القياسية)',
+                    style: TextStyle(
+                      fontSize: 10.sp, // Make it smaller
+                      fontWeight: FontWeight.normal, // Make it less bold
+                      color: Colors.white70, // Make it slightly transparent
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 10.h),
+            TextButton.icon(
+              style: TextButton.styleFrom(
+                backgroundColor: AppColors.primary.withOpacity(0.1),
+                foregroundColor: AppColors.primary,
+                shape: const StadiumBorder(), // Pill shape
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+              ),
               onPressed: () => context.push('/activate'),
-              child: const Text('لدي كود بالفعل'),
+              icon: const Icon(Icons.key_rounded, size: 20), // Your key icon
+              label: Text(
+                'لدي كود بالفعل',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16.sp,
+                ),
+              ),
             ),
             TextButton(onPressed: () => context.pop(), child: const Text('رجوع')),
           ],

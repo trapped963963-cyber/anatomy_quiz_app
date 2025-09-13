@@ -73,42 +73,55 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
       
       
       
-        return Padding(
-        padding: EdgeInsets.all(24.w),
-        child: LayoutBuilder(  
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight,),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'أدخل رقم هاتفك',
-                    style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 30.h),
-                  PhoneNumberInput(
-                    initialValue: _phoneNumber,
-                    onValueChanged: _onPhoneChanged ,
-                    onCompleted: (number) {
-                    },
-                  ),            
-                  SizedBox(height: 30.h),
-                  ElevatedButton(
-                    onPressed: _isComplete ? _onNext : null,
-                    child: const Text('التالي'),
-                  ),
-                  TextButton(onPressed: () => context.pop(), child: const Text('رجوع')),
-                ],
+        return Stack(
+            children: [
+            Center(
+              child: Opacity(
+                opacity: 0.05, // Make it very subtle
+                child: Image.asset(
+                  'assets/images/loading_logo.png', // The path to your logo
+                  width: 500.r,
+                  height: 500.r,
+                ),
               ),
             ),
-          );
-          },
-        ),
-      );
+            Padding(
+            padding: EdgeInsets.all(24.w),
+            child: LayoutBuilder(  
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight,),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'أدخل رقم هاتفك',
+                        style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 30.h),
+                      PhoneNumberInput(
+                        initialValue: _phoneNumber,
+                        onValueChanged: _onPhoneChanged ,
+                        onCompleted: (number) {
+                        },
+                      ),            
+                      SizedBox(height: 30.h),
+                      ElevatedButton(
+                        onPressed: _isComplete ? _onNext : null,
+                        child: const Text('التالي'),
+                      ),
+                      TextButton(onPressed: () => context.pop(), child: const Text('رجوع')),
+                    ],
+                  ),
+                ),
+              );
+              },
+            ),
+          ),]
+        );
       }
     ) 
     );

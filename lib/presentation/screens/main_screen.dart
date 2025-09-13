@@ -10,6 +10,8 @@ import 'package:anatomy_quiz_app/presentation/widgets/settings_icon_button.dart'
 import 'package:flutter/services.dart';
 import 'package:anatomy_quiz_app/presentation/providers/search_provider.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
@@ -19,7 +21,11 @@ class MainScreen extends ConsumerStatefulWidget {
 }
 
 class _MainScreenState extends ConsumerState<MainScreen> {
-  
+    Future<void> _launchUrl(String url) async {
+    if (!await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication)) {
+      // Handle error if the URL can't be launched
+    }
+  }
   Future<bool> _showExitConfirmationDialog() async {
     return await showDialog<bool>(
       context: context,
@@ -63,72 +69,112 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
       child: Scaffold(
         body: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // In the main Row
-                      Expanded( // Wrap in Expanded to give it a defined space
-                        child: AutoSizeText(
-                          'مرحباً، ${userProgress.userName ?? ''}!',
-                          style: TextStyle(fontSize: 28.sp, fontWeight: FontWeight.bold),
-                          maxLines: 1, // Ensure it stays on one line
-                          minFontSize: 15, // Set a minimum readable size
+          child: Stack(
+            children: [
+             Center(
+                child: Opacity(
+                  opacity: 0.05, // Make it very subtle
+                  child: Image.asset(
+                    'assets/images/loading_logo.png', // The path to your logo
+                    width: 500.r,
+                    height: 500.r,
+                  ),
+                ),
+              ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // In the main Row
+                        Expanded( // Wrap in Expanded to give it a defined space
+                          child: AutoSizeText(
+                            'مرحباً، ${userProgress.userName ?? ''}!',
+                            style: TextStyle(fontSize: 28.sp, fontWeight: FontWeight.bold),
+                            maxLines: 1, // Ensure it stays on one line
+                            minFontSize: 15, // Set a minimum readable size
+                          ),
                         ),
+                        Row(
+                          children: [
+                            SettingsIconButton(
+                              onIcon: Icons.volume_up,
+                              offIcon: Icons.volume_off,
+                              isOn: settings['sound']!,
+                              onPressed: () => settingsNotifier.toggleSound(),
+                            ),
+                            SettingsIconButton(
+                              onIcon: Icons.vibration,
+                              offIcon: Icons.smartphone,
+                              isOn: settings['haptics']!,
+                              onPressed: () => settingsNotifier.toggleHaptics(),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 60.h),
+                    _buildMainButton(context,ref),
+                    SizedBox(height: 20.h),
+                    _buildSecondaryButton(
+                      context,
+                      title: 'يلا ندرس!',
+                      icon: Icons.map,
+                      onTap: () => context.push('/units'),
+                    ),
+                    SizedBox(height: 10.h),
+                    _buildSecondaryButton(
+                      context,
+                      title: 'جاهز للاختبار؟!',
+                      icon: Icons.quiz,
+                      onTap: () => context.push('/quiz/select-content'),
+                    ),
+                     SizedBox(height: 10.h),
+                    _buildSecondaryButton(
+                      context,
+                      title: 'ابحث عن رسم', // Search for a diagram
+                      icon: Icons.search,
+                      onTap: () {
+                        // ## THE FIX: Reset the search state before navigating ##
+                        ref.read(searchQueryProvider.notifier).state = '';
+                        context.push('/search');
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+                           Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: 20.h),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.telegram, color: Colors.blue, size: 30.r),
+                        onPressed: () {
+                          // IMPORTANT: Replace with your actual Telegram channel link
+                          _launchUrl('https://t.me/OlomLight');
+                        },
                       ),
-                      Row(
-                        children: [
-                          SettingsIconButton(
-                            onIcon: Icons.volume_up,
-                            offIcon: Icons.volume_off,
-                            isOn: settings['sound']!,
-                            onPressed: () => settingsNotifier.toggleSound(),
-                          ),
-                          SettingsIconButton(
-                            onIcon: Icons.vibration,
-                            offIcon: Icons.smartphone,
-                            isOn: settings['haptics']!,
-                            onPressed: () => settingsNotifier.toggleHaptics(),
-                          ),
-                        ],
+                      SizedBox(width: 20.w),
+                      IconButton(
+                        icon: FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, size: 30.r),
+                        onPressed: () {
+                          // IMPORTANT: Replace with your actual WhatsApp channel link
+                          _launchUrl('https://whatsapp.com/channel/0029VbBRzaSKwqSYbvU3rc3V');
+                        },
                       ),
                     ],
                   ),
-                  SizedBox(height: 60.h),
-                  _buildMainButton(context,ref),
-                  SizedBox(height: 20.h),
-                  _buildSecondaryButton(
-                    context,
-                    title: 'يلا ندرس!',
-                    icon: Icons.map,
-                    onTap: () => context.push('/units'),
-                  ),
-                  SizedBox(height: 10.h),
-                  _buildSecondaryButton(
-                    context,
-                    title: 'جاهز للاختبار؟!',
-                    icon: Icons.quiz,
-                    onTap: () => context.push('/quiz/select-content'),
-                  ),
-                   SizedBox(height: 10.h),
-                  _buildSecondaryButton(
-                    context,
-                    title: 'ابحث عن رسم', // Search for a diagram
-                    icon: Icons.search,
-                    onTap: () {
-                      // ## THE FIX: Reset the search state before navigating ##
-                      ref.read(searchQueryProvider.notifier).state = '';
-                      context.push('/search');
-                    },
-                  ),
-                ],
+                ),
               ),
-            ),
+            ]
           ),
         ),
       ),

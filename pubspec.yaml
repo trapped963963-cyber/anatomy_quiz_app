@@ -64,6 +64,9 @@ dependencies:
   scroll_snap_list: ^0.9.1
   step_progress_indicator: ^1.0.2
   flutter_launcher_icons: ^0.13.1
+  font_awesome_flutter: ^10.7.0
+
+
 
 
   

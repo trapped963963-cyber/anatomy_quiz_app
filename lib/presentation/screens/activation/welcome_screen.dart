@@ -4,10 +4,18 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:anatomy_quiz_app/presentation/theme/app_colors.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class WelcomeScreen extends ConsumerWidget {
   const WelcomeScreen({super.key});
 
+   // ## NEW: Helper method to launch URLs ##
+  Future<void> _launchUrl(String url) async {
+    if (!await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication)) {
+      // Handle error if the URL can't be launched
+    }
+  }
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PopScope(
@@ -57,6 +65,32 @@ class WelcomeScreen extends ConsumerWidget {
                       child: const Text('ابدأ الآن'),
                     ),
                   ],
+                ),
+              ),
+                            Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: 20.h),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.telegram, color: Colors.blue, size: 30.r),
+                        onPressed: () {
+                          // IMPORTANT: Replace with your actual Telegram channel link
+                          _launchUrl('https://t.me/OlomLight');
+                        },
+                      ),
+                      SizedBox(width: 20.w),
+                      IconButton(
+                        icon: FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, size: 30.r),
+                        onPressed: () {
+                          // IMPORTANT: Replace with your actual WhatsApp channel link
+                          _launchUrl('https://whatsapp.com/channel/0029VbBRzaSKwqSYbvU3rc3V');
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
