@@ -10,7 +10,6 @@ class EncryptionService {
     try {
       _fernet = Fernet(base64Key);
     } catch (e) {
-      print('Failed to initialize Fernet with key: $e');
     }
   }
 
@@ -29,7 +28,6 @@ class EncryptionService {
           return utf8.decode(decryptedBytes);
     } catch (e) {
       // If decryption fails, return the original text to avoid crashes.
-      print('Decryption failed: $e');
       return encryptedText;
     }
   }

@@ -199,71 +199,79 @@ class _ContactAdminScreenState extends ConsumerState<ContactAdminScreen> {
     }
     message += '\nرمز الجهاز: $_fingerprint';
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text('للحصول على كود التفعيل، أرسل الرسالة التالية:', style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-          SizedBox(height: 20.h),
-          Container(
-            padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8.r)),
-            child: Text(message, style: TextStyle(fontSize: 16.sp, height: 1.5), textAlign: TextAlign.right),
+return Column(
+    children: [
+      // --- Top Section: Scrollable Message ---
+      Expanded(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('للحصول على كود التفعيل، أرسل الرسالة التالية:', style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+              SizedBox(height: 20.h),
+              Container(
+                padding: EdgeInsets.all(16.w),
+                decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8.r)),
+                child: Text(message, style: TextStyle(fontSize: 16.sp, height: 1.5), textAlign: TextAlign.right),
+              ),
+              SizedBox(height: 10.h),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.copy),
+                label: const Text('نسخ الرسالة'),
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: message));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم نسخ الرسالة بنجاح')));
+                },
+              ),
+              SizedBox(height: 20.h),
+              ElevatedButton(
+                onPressed: () => _launchUrl(Uri.parse('https://wa.me/$_contactNumber?text=${Uri.encodeComponent(message)}')),
+                child: const Text('إرسال عبر واتساب'),
+              ),
+              SizedBox(height: 10.h),
+              ElevatedButton(
+                onPressed: () async {
+                  await Clipboard.setData(ClipboardData(text: message));
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        duration: Duration(seconds: 2),
+                        content: Text('تم نسخ الرسالة! الرجاء لصقها في محادثة تيليجرام.'),
+                      ),
+                    );
+                  }
+                  await Future.delayed(const Duration(seconds: 2));
+                  _launchUrl(Uri.parse('https://t.me/YourAdminUsername'));
+                },
+                child: const Text('إرسال عبر تيليجرام'),
+              ),
+              SizedBox(height: 10.h),
+              ElevatedButton(
+                onPressed: () => _launchUrl(Uri.parse('sms:$_contactNumber?body=${Uri.encodeComponent(message)}')),
+                child: const Text('إرسال عبر رسالة نصية'),
+              ),
+            ],
           ),
-          SizedBox(height: 10.h),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.copy),
-            label: const Text('نسخ الرسالة'),
-            onPressed: () {
-              Clipboard.setData(ClipboardData(text: message));
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم نسخ الرسالة بنجاح')));
-            },
-          ),
-          SizedBox(height: 20.h),
-          ElevatedButton(
-            onPressed: () => _launchUrl(Uri.parse('https://wa.me/$_contactNumber?text=${Uri.encodeComponent(message)}')),
-            child: const Text('إرسال عبر واتساب'),
-          ),
-          SizedBox(height: 10.h),
-          ElevatedButton(
-            onPressed: () async { // Make the function async
-            // 1. Copy the message to the clipboard.
-            await Clipboard.setData(ClipboardData(text: message));
-
-            // 2. Show the confirmation message FIRST.
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  duration: Duration(seconds: 2), // Make sure it's visible
-                  content: Text('تم نسخ الرسالة! الرجاء لصقها في محادثة تيليجرام.'),
-                ),
-              );
-            }
-
-            // 3. Wait for a moment so the user can read the message.
-            await Future.delayed(const Duration(seconds: 2));
-
-            // 4. Launch the Telegram app.
-            // !!! IMPORTANT: Remember to replace 'YourAdminUsername'
-            _launchUrl(Uri.parse('https://t.me/YourAdminUsername'));
-          },
-            child: const Text('إرسال عبر تيليجرام'),
-          ),
-          SizedBox(height: 10.h),
-          ElevatedButton(
-            onPressed: () => _launchUrl(Uri.parse('sms:$_contactNumber?body=${Uri.encodeComponent(message)}')),
-            child: const Text('إرسال عبر رسالة نصية'),
-          ),
-          SizedBox(height: 20.h),
-          OutlinedButton(
-            onPressed: () => context.push('/activate'),
-            child: const Text('لدي كود بالفعل'),
-          ),
-          TextButton(onPressed: () => context.pop(), child: const Text('رجوع')),
-        ],
+        ),
       ),
-    );
+      
+      // --- Bottom Section: Fixed Buttons ---
+      const Divider(thickness: 1),
+      Padding(
+        padding: EdgeInsets.only(top: 8.h),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            OutlinedButton(
+              onPressed: () => context.push('/activate'),
+              child: const Text('لدي كود بالفعل'),
+            ),
+            TextButton(onPressed: () => context.pop(), child: const Text('رجوع')),
+          ],
+        ),
+      ),
+    ],
+  );
   }
 
   Widget _buildErrorState() {

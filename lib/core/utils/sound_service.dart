@@ -11,10 +11,7 @@ class SoundService {
 
   // This method should be called on app startup to load the sounds into memory.
   Future<void> preloadSounds() async {
-    // You can add a print statement here to confirm preloading in debug mode.
-    print("Preloading sounds...");
     await _audioCache.loadAll(['correct.mp3', 'incorrect.mp3']);
-    print("Sounds preloaded successfully.");
   }
 
   void _playSound(String soundFile) {

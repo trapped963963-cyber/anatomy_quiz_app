@@ -75,7 +75,6 @@ class ApiService {
     try {
       await _post('users/ping', {'phone_number': phoneNumber});
     } catch (e) {
-      print('Activity ping failed: $e');
     }
   }
   Future<String> getContactNumber() async {
